@@ -155,7 +155,7 @@ var Instructions = map[instruction.Instruction]instr{
 		},
 	},
 	instruction.JNE: {
-		description: "Move literal to register R4",
+		description: "Jump if not equal",
 		parameters: []instruction.Parameter{
 			instruction.PARAM16,
 			instruction.PARAM16,
@@ -167,6 +167,13 @@ var Instructions = map[instruction.Instruction]instr{
 					Error: fmt.Errorf("JNE: error fetching from Ac: %v", err)}
 			}
 			return instruction.Jump{Against: value}
+		},
+	},
+	instruction.HALT: {
+		description: "Halt execution",
+		executor: func(cpu *cpu, _ []byte) instruction.Executor {
+			end := cap(*cpu.memory)
+			return instruction.Halt{End: uint16(end)}
 		},
 	},
 }

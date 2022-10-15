@@ -43,6 +43,10 @@ func (cpu *cpu) nextInstruction() (byte, error) {
 		return 0, fmt.Errorf("unable to access IP register: %v", err)
 	}
 
+	if int(ip) == cap(*cpu.memory) {
+		return byte(instruction.END), nil
+	}
+
 	ipAddr := address(ip)
 	instr, err := cpu.memory.GetByte(ipAddr)
 	if err != nil {
@@ -71,6 +75,11 @@ func (cpu *cpu) tick() error {
 	next, err := cpu.nextInstruction()
 	if err != nil {
 		return fmt.Errorf("unable to fetch next tick: %v", err)
+	}
+
+	if next == byte(instruction.END) {
+		// We are done here
+		return nil
 	}
 
 	if err := cpu.executeInstruction(next); err != nil {

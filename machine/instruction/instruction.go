@@ -11,4 +11,6 @@ const (
 	MOV_LIT_R4  Instruction = iota
 	ADD_REG_REG Instruction = iota
 	JNE         Instruction = iota
+	HALT        Instruction = iota
+	END         Instruction = iota
 )

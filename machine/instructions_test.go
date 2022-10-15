@@ -37,6 +37,7 @@ func Test_Execute_Loop(t *testing.T) {
 		byte(instruction.ADD_REG_REG), byte(register.Ac), byte(register.R1),
 		byte(instruction.JNE), 0x03, 0x00, 0x06, 0x00,
 		byte(instruction.MOV_LIT_R2), 0xac, 0xab,
+		byte(instruction.HALT),
 	})
 
 	step := 0

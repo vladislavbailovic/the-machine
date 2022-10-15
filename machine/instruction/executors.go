@@ -60,3 +60,11 @@ func (x Jump) Execute(params []byte) (Result, error) {
 	}
 	return Result{}, nil
 }
+
+type Halt struct {
+	End uint16
+}
+
+func (x Halt) Execute(_ []byte) (Result, error) {
+	return Result{Action: RecordRegister, Target: register.Ip, Value: x.End}, nil
+}

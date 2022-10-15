@@ -15,7 +15,7 @@ func NewMemory(size int) *memory {
 
 func (mem memory) GetByte(at address) (byte, error) {
 	addr := int(at)
-	if addr <= len(mem) {
+	if addr < len(mem) {
 		return mem[addr], nil
 	} else {
 		return 0, fmt.Errorf("invalid memory access at %d", at)

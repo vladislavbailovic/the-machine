@@ -1,4 +1,4 @@
-package machine
+package memory
 
 import "testing"
 

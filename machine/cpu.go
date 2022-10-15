@@ -3,22 +3,23 @@ package machine
 import (
 	"fmt"
 	"the-machine/machine/instruction"
+	"the-machine/machine/memory"
 	"the-machine/machine/register"
 )
 
 type cpu struct {
-	registers *memory
-	memory    *memory
+	registers *memory.Memory
+	memory    *memory.Memory
 }
 
 func NewCpu() cpu {
-	registers := NewMemory(int(register.Size()) * 2)
-	return cpu{registers: registers, memory: NewMemory(255)}
+	registers := memory.NewMemory(int(register.Size()) * 2)
+	return cpu{registers: registers, memory: memory.NewMemory(255)}
 }
 
-func (cpu *cpu) LoadProgram(at address, program []byte) error {
+func (cpu *cpu) LoadProgram(at memory.Address, program []byte) error {
 	for idx, b := range program {
-		if err := cpu.memory.SetByte(at+address(idx), b); err != nil {
+		if err := cpu.memory.SetByte(at+memory.Address(idx), b); err != nil {
 			return fmt.Errorf("error loading program at %d+%d (0x%02x): %v", at, idx, b, err)
 		}
 	}
@@ -26,7 +27,7 @@ func (cpu *cpu) LoadProgram(at address, program []byte) error {
 }
 
 func (cpu cpu) getRegister(r register.Register) (uint16, error) {
-	if reg, err := cpu.registers.GetUint16(address(r.Address())); err != nil {
+	if reg, err := cpu.registers.GetUint16(memory.Address(r.Address())); err != nil {
 		return 0, fmt.Errorf("Unknown register: %d: %v", reg, err)
 	} else {
 		return reg, nil
@@ -34,7 +35,7 @@ func (cpu cpu) getRegister(r register.Register) (uint16, error) {
 }
 
 func (cpu *cpu) setRegister(r register.Register, v uint16) error {
-	return cpu.registers.SetUint16(address(r.Address()), v)
+	return cpu.registers.SetUint16(memory.Address(r.Address()), v)
 }
 
 func (cpu *cpu) nextInstruction() (byte, error) {
@@ -47,7 +48,7 @@ func (cpu *cpu) nextInstruction() (byte, error) {
 		return byte(instruction.END), nil
 	}
 
-	ipAddr := address(ip)
+	ipAddr := memory.Address(ip)
 	instr, err := cpu.memory.GetByte(ipAddr)
 	if err != nil {
 		return instr, fmt.Errorf("unable to get next instruction: %v", err)
@@ -93,7 +94,7 @@ func (cpu cpu) debug() {
 	ad, _ := cpu.getRegister(register.Ip)
 	fmt.Printf("%02d:   ", ad)
 	for i := 0; i < 8; i++ {
-		b, _ := cpu.memory.GetByte(address(ad + uint16(i)))
+		b, _ := cpu.memory.GetByte(memory.Address(ad + uint16(i)))
 		fmt.Printf("0x%02x ", b)
 	}
 	r1, _ := cpu.getRegister(register.R1)

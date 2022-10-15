@@ -1,19 +1,19 @@
-package machine
+package memory
 
 import (
 	"encoding/binary"
 	"fmt"
 )
 
-type address uint16
-type memory []byte
+type Address uint16
+type Memory []byte
 
-func NewMemory(size int) *memory {
-	mem := make(memory, size, size)
+func NewMemory(size int) *Memory {
+	mem := make(Memory, size, size)
 	return &mem
 }
 
-func (mem memory) GetByte(at address) (byte, error) {
+func (mem Memory) GetByte(at Address) (byte, error) {
 	addr := int(at)
 	if addr < len(mem) {
 		return mem[addr], nil
@@ -22,7 +22,7 @@ func (mem memory) GetByte(at address) (byte, error) {
 	}
 }
 
-func (mem memory) GetUint16(at address) (uint16, error) {
+func (mem Memory) GetUint16(at Address) (uint16, error) {
 	addr := int(at)
 	if addr+1 <= len(mem) {
 		hi, err := mem.GetByte(at)
@@ -40,7 +40,7 @@ func (mem memory) GetUint16(at address) (uint16, error) {
 	}
 }
 
-func (mem *memory) SetByte(at address, value byte) error {
+func (mem *Memory) SetByte(at Address, value byte) error {
 	if int(at) > cap(*mem) {
 		return fmt.Errorf("invalid memory access at %d (of %d): trying to set byte 0x%02x", at, len(*mem), value)
 	}
@@ -48,7 +48,7 @@ func (mem *memory) SetByte(at address, value byte) error {
 	return nil
 }
 
-func (mem *memory) SetUint16(at address, value uint16) error {
+func (mem *Memory) SetUint16(at Address, value uint16) error {
 	if int(at)+1 > cap(*mem) {
 		return fmt.Errorf("invalid memory access at %d (of %d): trying to set %d", at, len(*mem), value)
 	}

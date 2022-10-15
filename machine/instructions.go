@@ -3,6 +3,7 @@ package machine
 import (
 	"fmt"
 	"the-machine/machine/instruction"
+	"the-machine/machine/memory"
 	"the-machine/machine/register"
 )
 
@@ -39,20 +40,20 @@ func (x instr) getParams(cpu *cpu) ([]byte, error) {
 	for idx, p := range x.parameters {
 		switch p {
 		case instruction.PARAM8:
-			val, err := cpu.memory.GetByte(address(pos))
+			val, err := cpu.memory.GetByte(memory.Address(pos))
 			if err != nil {
 				return params, fmt.Errorf("%s: error getting param %d: %v", x.description, idx, err)
 			}
 			pos++
 			params = append(params, val)
 		case instruction.PARAM16:
-			hi, err := cpu.memory.GetByte(address(pos))
+			hi, err := cpu.memory.GetByte(memory.Address(pos))
 			if err != nil {
 				return params, fmt.Errorf("%s: error getting param %d: %v", x.description, idx, err)
 			}
 			params = append(params, hi)
 			pos++
-			lo, err := cpu.memory.GetByte(address(pos))
+			lo, err := cpu.memory.GetByte(memory.Address(pos))
 			if err != nil {
 				return params, fmt.Errorf("%s: error getting param %d: %v", x.description, idx, err)
 			}

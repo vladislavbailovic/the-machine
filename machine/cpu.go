@@ -61,10 +61,7 @@ func (cpu *cpu) executeInstruction(instr byte) error {
 	if !ok {
 		return fmt.Errorf("unknown instruction: 0x%02x", instr)
 	}
-	if instruction.execute == nil {
-		return fmt.Errorf("missing executor for 0x%02x", instr)
-	}
-	if err := instruction.execute(cpu); err != nil {
+	if err := instruction.Execute(cpu); err != nil {
 		return fmt.Errorf("error executing 0x%02x: %v", instr, err)
 	}
 	return nil

@@ -2,6 +2,7 @@ package machine
 
 import (
 	"fmt"
+	"the-machine/machine/instruction"
 	"the-machine/machine/register"
 )
 
@@ -56,7 +57,7 @@ func (cpu *cpu) nextInstruction() (byte, error) {
 }
 
 func (cpu *cpu) executeInstruction(instr byte) error {
-	instruction, ok := Instructions[instruction(instr)]
+	instruction, ok := Instructions[instruction.Instruction(instr)]
 	if !ok {
 		return fmt.Errorf("unknown instruction: 0x%02x", instr)
 	}

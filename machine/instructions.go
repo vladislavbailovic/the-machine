@@ -2,16 +2,8 @@ package machine
 
 import (
 	"fmt"
+	"the-machine/machine/instruction"
 	"the-machine/machine/register"
-)
-
-type instruction byte
-
-const (
-	NOP         instruction = 0
-	MOV_LIT_R1  instruction = iota
-	MOV_LIT_R2  instruction = iota
-	ADD_REG_REG instruction = iota
 )
 
 type instr struct {
@@ -19,14 +11,14 @@ type instr struct {
 	execute     func(*cpu) error
 }
 
-var Instructions = map[instruction]instr{
-	NOP: {
+var Instructions = map[instruction.Instruction]instr{
+	instruction.NOP: {
 		description: "No-op",
 		execute: func(cpu *cpu) error {
 			return nil
 		},
 	},
-	MOV_LIT_R1: {
+	instruction.MOV_LIT_R1: {
 		description: "Move literal to register R1",
 		execute: func(cpu *cpu) error {
 			fmt.Println("MOV_LIT_R1")
@@ -49,7 +41,7 @@ var Instructions = map[instruction]instr{
 			return nil
 		},
 	},
-	MOV_LIT_R2: {
+	instruction.MOV_LIT_R2: {
 		description: "Move literal to register R2",
 		execute: func(cpu *cpu) error {
 			fmt.Println("MOV_LIT_R2")
@@ -72,7 +64,7 @@ var Instructions = map[instruction]instr{
 			return nil
 		},
 	},
-	ADD_REG_REG: {
+	instruction.ADD_REG_REG: {
 		description: "Add contents of two registers",
 		execute: func(cpu *cpu) error {
 			fmt.Println("ADD_REG_REG")

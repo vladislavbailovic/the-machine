@@ -1,16 +1,16 @@
 package instruction
 
-type Instruction byte
+type Type byte
 
 const (
-	NOP         Instruction = 0
-	MOV_LIT_AC  Instruction = iota
-	MOV_LIT_R1  Instruction = iota
-	MOV_LIT_R2  Instruction = iota
-	MOV_LIT_R3  Instruction = iota
-	MOV_LIT_R4  Instruction = iota
-	ADD_REG_REG Instruction = iota
-	JNE         Instruction = iota
-	HALT        Instruction = iota
-	END         Instruction = iota
+	NOP         Type = 0
+	MOV_LIT_AC  Type = iota
+	MOV_LIT_R1  Type = iota
+	MOV_LIT_R2  Type = iota
+	MOV_LIT_R3  Type = iota
+	MOV_LIT_R4  Type = iota
+	ADD_REG_REG Type = iota
+	JNE         Type = iota
+	HALT        Type = iota
+	END         Type = iota
 )

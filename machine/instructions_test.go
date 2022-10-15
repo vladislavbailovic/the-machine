@@ -44,10 +44,13 @@ func Test_Execute_Loop(t *testing.T) {
 
 	step := 0
 	for step < 20 {
+		vm.debug()
 		if err := vm.tick(); err != nil {
 			t.Fatalf("error at tick %d: %v", step, err)
 		}
 		step++
+		if vm.isDone() {
+			break
+		}
 	}
-	vm.debug()
 }

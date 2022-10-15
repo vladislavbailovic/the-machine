@@ -4,17 +4,16 @@ import (
 	"encoding/binary"
 	"fmt"
 	"the-machine/machine/cpu"
-	"the-machine/machine/memory"
 	"the-machine/machine/register"
 )
 
 type Executor interface {
-	Execute([]byte, *cpu.Cpu, *memory.Memory) error
+	Execute([]byte, *cpu.Cpu) error
 }
 
 type Passthrough struct{}
 
-func (x Passthrough) Execute(p []byte, cpu *cpu.Cpu, memory *memory.Memory) error {
+func (x Passthrough) Execute(p []byte, cpu *cpu.Cpu) error {
 	return nil
 }
 
@@ -22,9 +21,9 @@ type Lit2Reg struct {
 	Target register.Register
 }
 
-func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu, memory *memory.Memory) error {
+func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu) error {
 	if len(params) != 2 {
-		return fmt.Errorf("lit2reg[%v]: invalid parameter: %v", x.Target, params)
+		return fmt.Errorf("LIT2REG[%v]: invalid parameter: %v", x.Target, params)
 	}
 	value := binary.LittleEndian.Uint16(params)
 	return cpu.SetRegister(x.Target, value)
@@ -32,7 +31,7 @@ func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu, memory *memory.Memory) err
 
 type AddTwo struct{}
 
-func (x AddTwo) Execute(params []byte, cpu *cpu.Cpu, memory *memory.Memory) error {
+func (x AddTwo) Execute(params []byte, cpu *cpu.Cpu) error {
 	if len(params) != 2 {
 		return fmt.Errorf("ADD_REG_REG: invalid params: %v", params)
 	}
@@ -49,14 +48,14 @@ func (x AddTwo) Execute(params []byte, cpu *cpu.Cpu, memory *memory.Memory) erro
 
 type Jump struct{}
 
-func (x Jump) Execute(params []byte, cpu *cpu.Cpu, memory *memory.Memory) error {
+func (x Jump) Execute(params []byte, cpu *cpu.Cpu) error {
 	against, err := cpu.GetRegister(register.Register(register.Ac))
 	if err != nil {
 		return fmt.Errorf("JNE: error fetching from Ac: %v", err)
 	}
 
 	if len(params) != 4 {
-		return fmt.Errorf("jne[%v]: invalid parameter: %v", against, params)
+		return fmt.Errorf("JNE[%v]: invalid parameter: %v", against, params)
 	}
 	value := binary.LittleEndian.Uint16(params[0:2])
 	address := binary.LittleEndian.Uint16(params[2:4])

@@ -18,7 +18,7 @@ func (x Instruction) Execute(cpu *cpu.Cpu, memory *memory.Memory) error {
 	if err != nil {
 		return fmt.Errorf("unable to execute \"%s\": %v", x.Description, err)
 	}
-	err = x.Executor.Execute(params, cpu, memory)
+	err = x.Executor.Execute(params, cpu)
 	if err != nil {
 		return fmt.Errorf("error executing \"%s\": %v", x.Description, err)
 	}

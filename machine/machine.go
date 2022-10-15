@@ -18,13 +18,13 @@ const (
 	Done    Status = iota
 )
 
-type Vm struct {
+type Machine struct {
 	cpu    *cpu.Cpu
 	memory *memory.Memory
 	status Status
 }
 
-func (vm *Vm) LoadProgram(at memory.Address, program []byte) error {
+func (vm *Machine) LoadProgram(at memory.Address, program []byte) error {
 	for idx, b := range program {
 		if err := vm.memory.SetByte(at+memory.Address(idx), b); err != nil {
 			return fmt.Errorf("error loading program at %d+%d (0x%02x): %v", at, idx, b, err)
@@ -34,7 +34,7 @@ func (vm *Vm) LoadProgram(at memory.Address, program []byte) error {
 	return nil
 }
 
-func (vm *Vm) nextInstruction() (byte, error) {
+func (vm *Machine) nextInstruction() (byte, error) {
 	ip, err := vm.cpu.GetRegister(register.Ip)
 	if err != nil {
 		return 0, fmt.Errorf("unable to access IP register: %v", err)
@@ -53,7 +53,7 @@ func (vm *Vm) nextInstruction() (byte, error) {
 	return instr, nil
 }
 
-func (vm *Vm) executeInstruction(instr byte) error {
+func (vm *Machine) executeInstruction(instr byte) error {
 	instructionType := instruction.Type(instr)
 	if instructionType == instruction.END || instructionType == instruction.HALT {
 		vm.status = Done
@@ -71,7 +71,7 @@ func (vm *Vm) executeInstruction(instr byte) error {
 	return nil
 }
 
-func (vm *Vm) tick() error {
+func (vm *Machine) tick() error {
 	if vm.isDone() {
 		return nil
 	}
@@ -93,11 +93,11 @@ func (vm *Vm) tick() error {
 	return nil
 }
 
-func (vm Vm) isDone() bool {
+func (vm Machine) isDone() bool {
 	return vm.status == Done
 }
 
-func (vm *Vm) debug() {
+func (vm *Machine) debug() {
 	positions := make([]string, 8)
 	values := make([]string, 8)
 

@@ -10,7 +10,7 @@ import (
 )
 
 func Test_Execute_Program(t *testing.T) {
-	vm := Vm{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	b1 := make([]byte, 2)
 	binary.LittleEndian.PutUint16(b1, uint16(1312))
 	b2 := make([]byte, 2)
@@ -32,7 +32,7 @@ func Test_Execute_Program(t *testing.T) {
 }
 
 func Test_Execute_Loop(t *testing.T) {
-	vm := Vm{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	vm.LoadProgram(0, []byte{
 		byte(instruction.MOV_LIT_AC), 0x01, 0x00,
 		byte(instruction.MOV_LIT_R1), 0x01, 0x00,

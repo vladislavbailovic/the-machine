@@ -109,6 +109,22 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.OperateRegLit{Operation: instruction.OpDiv},
 	},
+	instruction.MOD_REG_REG: {
+		Description: "Remainder of contents of two registers division",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM8,
+			instruction.PARAM8,
+		},
+		Executor: instruction.OperateReg{Operation: instruction.OpMod},
+	},
+	instruction.MOD_REG_LIT: {
+		Description: "Remainder of register with literal value division",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM8,
+			instruction.PARAM16,
+		},
+		Executor: instruction.OperateRegLit{Operation: instruction.OpMod},
+	},
 	instruction.JNE: {
 		Description: "Jump if not equal",
 		Parameters: []instruction.Parameter{

@@ -55,6 +55,8 @@ func (x OperateReg) Execute(params []byte, cpu *cpu.Cpu) error {
 		return cpu.SetRegister(register.Ac, v1*v2)
 	case OpDiv:
 		return cpu.SetRegister(register.Ac, v1/v2)
+	case OpMod:
+		return cpu.SetRegister(register.Ac, v1%v2)
 	default:
 		return fmt.Errorf("OP_REG %d: unknown operation", x.Operation)
 	}
@@ -83,6 +85,8 @@ func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu) error {
 		return cpu.SetRegister(register.Ac, reg*literal)
 	case OpDiv:
 		return cpu.SetRegister(register.Ac, reg/literal)
+	case OpMod:
+		return cpu.SetRegister(register.Ac, reg%literal)
 	default:
 		return fmt.Errorf("OP_REG_LIT %d: unknown operation", x.Operation)
 	}

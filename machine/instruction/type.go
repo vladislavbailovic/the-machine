@@ -23,6 +23,9 @@ const (
 	DIV_REG_REG Type = iota
 	DIV_REG_LIT Type = iota
 
+	MOD_REG_REG Type = iota
+	MOD_REG_LIT Type = iota
+
 	JNE Type = iota
 
 	HALT Type = iota
@@ -36,4 +39,5 @@ const (
 	OpSub Op = iota
 	OpMul Op = iota
 	OpDiv Op = iota
+	OpMod Op = iota
 )

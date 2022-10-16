@@ -51,7 +51,7 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 			instruction.PARAM8,
 			instruction.PARAM8,
 		},
-		Executor: instruction.AddTwo{},
+		Executor: instruction.OperateReg{Operation: instruction.OpAdd},
 	},
 	instruction.SUB_REG_REG: {
 		Description: "Subtract contents of two registers",
@@ -59,7 +59,7 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 			instruction.PARAM8,
 			instruction.PARAM8,
 		},
-		Executor: instruction.SubTwo{},
+		Executor: instruction.OperateReg{Operation: instruction.OpSub},
 	},
 	instruction.MUL_REG_REG: {
 		Description: "Multiply contents of two registers",
@@ -67,7 +67,7 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 			instruction.PARAM8,
 			instruction.PARAM8,
 		},
-		Executor: instruction.MulTwo{},
+		Executor: instruction.OperateReg{Operation: instruction.OpMul},
 	},
 	instruction.DIV_REG_REG: {
 		Description: "Divide contents of two registers",
@@ -75,7 +75,7 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 			instruction.PARAM8,
 			instruction.PARAM8,
 		},
-		Executor: instruction.DivTwo{},
+		Executor: instruction.OperateReg{Operation: instruction.OpDiv},
 	},
 	instruction.JNE: {
 		Description: "Jump if not equal",

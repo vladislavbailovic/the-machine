@@ -29,59 +29,35 @@ func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu) error {
 	return cpu.SetRegister(x.Target, value)
 }
 
-func getRegistersForOp(opName string, cpu *cpu.Cpu, params []byte) (uint16, uint16, error) {
+type OperateReg struct {
+	Operation Op
+}
+
+func (x OperateReg) Execute(params []byte, cpu *cpu.Cpu) error {
 	if len(params) != 2 {
-		return 0, 0, fmt.Errorf("%s: invalid params: %v", opName, params)
+		return fmt.Errorf("OP_REG %d: invalid params: %v", x.Operation, params)
 	}
 	v1, err := cpu.GetRegister(register.Register(params[0]))
 	if err != nil {
-		return 0, 0, fmt.Errorf("%s: error fetching from register %d (#1): %v", opName, params[0], err)
+		return fmt.Errorf("OP_REG %d: error fetching from register %d (#1): %v", x.Operation, params[0], err)
 	}
 	v2, err := cpu.GetRegister(register.Register(params[1]))
 	if err != nil {
-		return 0, 0, fmt.Errorf("%s: error fetching from register %d (#2): %v", opName, params[1], err)
+		return fmt.Errorf("OP_REG %d: error fetching from register %d (#2): %v", x.Operation, params[1], err)
 	}
-	return v1, v2, nil
-}
 
-type AddTwo struct{}
-
-func (x AddTwo) Execute(params []byte, cpu *cpu.Cpu) error {
-	v1, v2, err := getRegistersForOp("ADD_REG_REG", cpu, params)
-	if err != nil {
-		return err
+	switch x.Operation {
+	case OpAdd:
+		return cpu.SetRegister(register.Ac, v1+v2)
+	case OpSub:
+		return cpu.SetRegister(register.Ac, v1-v2)
+	case OpMul:
+		return cpu.SetRegister(register.Ac, v1*v2)
+	case OpDiv:
+		return cpu.SetRegister(register.Ac, v1/v2)
+	default:
+		return fmt.Errorf("OP_REG %d: unknown operation", x.Operation)
 	}
-	return cpu.SetRegister(register.Ac, v1+v2)
-}
-
-type SubTwo struct{}
-
-func (x SubTwo) Execute(params []byte, cpu *cpu.Cpu) error {
-	v1, v2, err := getRegistersForOp("SUB_REG_REG", cpu, params)
-	if err != nil {
-		return err
-	}
-	return cpu.SetRegister(register.Ac, v1-v2)
-}
-
-type MulTwo struct{}
-
-func (x MulTwo) Execute(params []byte, cpu *cpu.Cpu) error {
-	v1, v2, err := getRegistersForOp("MUL_REG_REG", cpu, params)
-	if err != nil {
-		return err
-	}
-	return cpu.SetRegister(register.Ac, v1*v2)
-}
-
-type DivTwo struct{}
-
-func (x DivTwo) Execute(params []byte, cpu *cpu.Cpu) error {
-	v1, v2, err := getRegistersForOp("DIV_REG_REG", cpu, params)
-	if err != nil {
-		return err
-	}
-	return cpu.SetRegister(register.Ac, v1/v2)
 }
 
 type Jump struct{}

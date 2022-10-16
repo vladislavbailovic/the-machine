@@ -23,12 +23,12 @@ func Test_Execute_Program(t *testing.T) {
 
 	step := 0
 	for step < 20 {
-		if err := vm.tick(); err != nil {
+		if err := vm.Tick(); err != nil {
 			t.Fatalf("error at tick %d: %v", step, err)
 		}
 		step++
 	}
-	vm.debug()
+	vm.Debug()
 }
 
 func Test_Execute_Loop(t *testing.T) {
@@ -44,12 +44,12 @@ func Test_Execute_Loop(t *testing.T) {
 
 	step := 0
 	for step < 20 {
-		vm.debug()
-		if err := vm.tick(); err != nil {
+		vm.Debug()
+		if err := vm.Tick(); err != nil {
 			t.Fatalf("error at tick %d: %v", step, err)
 		}
 		step++
-		if vm.isDone() {
+		if vm.IsDone() {
 			break
 		}
 	}

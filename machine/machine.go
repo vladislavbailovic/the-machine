@@ -24,6 +24,14 @@ type Machine struct {
 	status Status
 }
 
+func NewMachine(memsize int) Machine {
+	return Machine{
+		cpu:    cpu.NewCpu(),
+		memory: memory.NewMemory(memsize),
+		status: Ready,
+	}
+}
+
 func (vm *Machine) LoadProgram(at memory.Address, program []byte) error {
 	for idx, b := range program {
 		if err := vm.memory.SetByte(at+memory.Address(idx), b); err != nil {
@@ -71,8 +79,8 @@ func (vm *Machine) executeInstruction(instr byte) error {
 	return nil
 }
 
-func (vm *Machine) tick() error {
-	if vm.isDone() {
+func (vm *Machine) Tick() error {
+	if vm.IsDone() {
 		return nil
 	}
 
@@ -93,11 +101,11 @@ func (vm *Machine) tick() error {
 	return nil
 }
 
-func (vm Machine) isDone() bool {
+func (vm Machine) IsDone() bool {
 	return vm.status == Done
 }
 
-func (vm *Machine) debug() {
+func (vm *Machine) Debug() {
 	positions := make([]string, 8)
 	values := make([]string, 8)
 

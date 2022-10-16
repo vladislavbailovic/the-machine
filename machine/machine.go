@@ -16,6 +16,7 @@ const (
 	Loaded  Status = iota
 	Running Status = iota
 	Done    Status = iota
+	Error   Status = iota
 )
 
 type Machine struct {
@@ -71,9 +72,11 @@ func (vm *Machine) executeInstruction(instr byte) error {
 	vm.status = Running
 	instruction, ok := Instructions[instructionType]
 	if !ok {
+		vm.status = Error
 		return fmt.Errorf("unknown instruction: 0x%02x", instr)
 	}
 	if err := instruction.Execute(vm.cpu, vm.memory); err != nil {
+		vm.status = Error
 		return fmt.Errorf("error executing 0x%02x: %v", instr, err)
 	}
 	return nil
@@ -102,7 +105,7 @@ func (vm *Machine) Tick() error {
 }
 
 func (vm Machine) IsDone() bool {
-	return vm.status == Done
+	return vm.status == Done || vm.status == Error
 }
 
 func (vm *Machine) Debug() {

@@ -21,8 +21,11 @@ func main() {
 
 	var response string
 	for true {
-		vm.Tick()
+		err := vm.Tick()
 		vm.Debug()
+		if err != nil {
+			fmt.Println(err)
+		}
 		if vm.IsDone() {
 			break
 		}

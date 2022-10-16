@@ -13,10 +13,9 @@ func main() {
 	vm := machine.NewMachine(255)
 	vm.LoadProgram(0, []byte{
 		byte(instruction.MOV_LIT_AC), 0x02, 0x00,
-		byte(instruction.MOV_LIT_R1), 0x04, 0x00,
-		byte(instruction.MUL_REG_REG), byte(register.Ac), byte(register.R1),
-		byte(instruction.MOV_LIT_R1), 0x02, 0x00,
-		byte(instruction.DIV_REG_REG), byte(register.Ac), byte(register.R1),
+		byte(instruction.MUL_REG_LIT), byte(register.Ac), 0x02, 0x00,
+		byte(instruction.JNE), 0x08, 0x00, 0x03, 0x00,
+		byte(instruction.DIV_REG_LIT), byte(register.Ac), 0x04, 0x00,
 		byte(instruction.HALT),
 	})
 

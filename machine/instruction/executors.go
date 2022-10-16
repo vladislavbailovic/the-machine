@@ -60,6 +60,34 @@ func (x OperateReg) Execute(params []byte, cpu *cpu.Cpu) error {
 	}
 }
 
+type OperateRegLit struct {
+	Operation Op
+}
+
+func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu) error {
+	if len(params) != 3 {
+		return fmt.Errorf("OP_REG_LIT %d: invalid params: %v", x.Operation, params)
+	}
+	reg, err := cpu.GetRegister(register.Register(params[0]))
+	if err != nil {
+		return fmt.Errorf("OP_REG_LIT %d: error fetching from register %d (#2): %v", x.Operation, params[0], err)
+	}
+	literal := binary.LittleEndian.Uint16(params[1:])
+
+	switch x.Operation {
+	case OpAdd:
+		return cpu.SetRegister(register.Ac, reg+literal)
+	case OpSub:
+		return cpu.SetRegister(register.Ac, reg-literal)
+	case OpMul:
+		return cpu.SetRegister(register.Ac, reg*literal)
+	case OpDiv:
+		return cpu.SetRegister(register.Ac, reg/literal)
+	default:
+		return fmt.Errorf("OP_REG_LIT %d: unknown operation", x.Operation)
+	}
+}
+
 type Jump struct{}
 
 func (x Jump) Execute(params []byte, cpu *cpu.Cpu) error {

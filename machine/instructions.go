@@ -53,6 +53,14 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.OperateReg{Operation: instruction.OpAdd},
 	},
+	instruction.ADD_REG_LIT: {
+		Description: "Add literal value to register",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM8,
+			instruction.PARAM16,
+		},
+		Executor: instruction.OperateRegLit{Operation: instruction.OpAdd},
+	},
 	instruction.SUB_REG_REG: {
 		Description: "Subtract contents of two registers",
 		Parameters: []instruction.Parameter{
@@ -60,6 +68,14 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 			instruction.PARAM8,
 		},
 		Executor: instruction.OperateReg{Operation: instruction.OpSub},
+	},
+	instruction.SUB_REG_LIT: {
+		Description: "Sub literal value from register",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM8,
+			instruction.PARAM16,
+		},
+		Executor: instruction.OperateRegLit{Operation: instruction.OpSub},
 	},
 	instruction.MUL_REG_REG: {
 		Description: "Multiply contents of two registers",
@@ -69,6 +85,14 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.OperateReg{Operation: instruction.OpMul},
 	},
+	instruction.MUL_REG_LIT: {
+		Description: "Multiply register with literal value",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM8,
+			instruction.PARAM16,
+		},
+		Executor: instruction.OperateRegLit{Operation: instruction.OpMul},
+	},
 	instruction.DIV_REG_REG: {
 		Description: "Divide contents of two registers",
 		Parameters: []instruction.Parameter{
@@ -76,6 +100,14 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 			instruction.PARAM8,
 		},
 		Executor: instruction.OperateReg{Operation: instruction.OpDiv},
+	},
+	instruction.DIV_REG_LIT: {
+		Description: "Divide register with literal value",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM8,
+			instruction.PARAM16,
+		},
+		Executor: instruction.OperateRegLit{Operation: instruction.OpDiv},
 	},
 	instruction.JNE: {
 		Description: "Jump if not equal",

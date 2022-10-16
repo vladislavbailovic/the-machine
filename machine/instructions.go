@@ -125,12 +125,52 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.OperateRegLit{Operation: instruction.OpMod},
 	},
-	instruction.JNE: {
-		Description: "Jump if not equal",
+	instruction.JEQ: {
+		Description: "Jump to if Ac equal to literal",
 		Parameters: []instruction.Parameter{
 			instruction.PARAM16,
 			instruction.PARAM16,
 		},
-		Executor: instruction.Jump{},
+		Executor: instruction.Jump{Comparison: instruction.CompEq},
+	},
+	instruction.JNE: {
+		Description: "Jump to if Ac not equal to literal",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM16,
+			instruction.PARAM16,
+		},
+		Executor: instruction.Jump{Comparison: instruction.CompNe},
+	},
+	instruction.JGT: {
+		Description: "Jump to if Ac greater than literal",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM16,
+			instruction.PARAM16,
+		},
+		Executor: instruction.Jump{Comparison: instruction.CompGt},
+	},
+	instruction.JGE: {
+		Description: "Jump to if Ac greater than or equal to literal",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM16,
+			instruction.PARAM16,
+		},
+		Executor: instruction.Jump{Comparison: instruction.CompGe},
+	},
+	instruction.JLT: {
+		Description: "Jump to if Ac less than literal",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM16,
+			instruction.PARAM16,
+		},
+		Executor: instruction.Jump{Comparison: instruction.CompLt},
+	},
+	instruction.JLE: {
+		Description: "Jump to if Ac less than or equal to literal",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM16,
+			instruction.PARAM16,
+		},
+		Executor: instruction.Jump{Comparison: instruction.CompLe},
 	},
 }

@@ -92,20 +92,53 @@ func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu) error {
 	}
 }
 
-type Jump struct{}
+type Jump struct {
+	Comparison Comparison
+}
 
 func (x Jump) Execute(params []byte, cpu *cpu.Cpu) error {
-	against, err := cpu.GetRegister(register.Register(register.Ac))
+	acu, err := cpu.GetRegister(register.Register(register.Ac))
 	if err != nil {
-		return fmt.Errorf("JNE: error fetching from Ac: %v", err)
+		return fmt.Errorf("JMP[%d]: error fetching from Ac: %v", x.Comparison, err)
 	}
 
 	if len(params) != 4 {
-		return fmt.Errorf("JNE[%v]: invalid parameter: %v", against, params)
+		return fmt.Errorf("JMP[%d][%v]: invalid parameter: %v", x.Comparison, acu, params)
 	}
-	value := binary.LittleEndian.Uint16(params[0:2])
+	literal := binary.LittleEndian.Uint16(params[0:2])
 	address := binary.LittleEndian.Uint16(params[2:4])
-	if value != against {
+
+	writeIp := false
+	switch x.Comparison {
+	case CompNe:
+		if literal != acu {
+			writeIp = true
+		}
+	case CompEq:
+		if literal == acu {
+			writeIp = true
+		}
+	case CompGt:
+		if acu > literal {
+			writeIp = true
+		}
+	case CompGe:
+		if acu >= literal {
+			writeIp = true
+		}
+	case CompLt:
+		if acu < literal {
+			writeIp = true
+		}
+	case CompLe:
+		if acu <= literal {
+			writeIp = true
+		}
+	default:
+		return fmt.Errorf("JMP[%d][%v]: invalid comparison: %v", x.Comparison, acu, params)
+	}
+
+	if writeIp {
 		return cpu.SetRegister(register.Ip, address)
 	}
 	return nil

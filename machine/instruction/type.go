@@ -27,6 +27,11 @@ const (
 	MOD_REG_LIT Type = iota
 
 	JNE Type = iota
+	JEQ Type = iota
+	JGT Type = iota
+	JGE Type = iota
+	JLT Type = iota
+	JLE Type = iota
 
 	HALT Type = iota
 	END  Type = iota
@@ -40,4 +45,15 @@ const (
 	OpMul Op = iota
 	OpDiv Op = iota
 	OpMod Op = iota
+)
+
+type Comparison byte
+
+const (
+	CompNe Comparison = 0
+	CompEq Comparison = iota
+	CompGe Comparison = iota
+	CompGt Comparison = iota
+	CompLe Comparison = iota
+	CompLt Comparison = iota
 )

@@ -46,6 +46,23 @@ func (x AddTwo) Execute(params []byte, cpu *cpu.Cpu) error {
 	return cpu.SetRegister(register.Ac, v1+v2)
 }
 
+type SubTwo struct{}
+
+func (x SubTwo) Execute(params []byte, cpu *cpu.Cpu) error {
+	if len(params) != 2 {
+		return fmt.Errorf("SUB_REG_REG: invalid params: %v", params)
+	}
+	v1, err := cpu.GetRegister(register.Register(params[0]))
+	if err != nil {
+		return fmt.Errorf("SUB_REG_REG: error fetching from register %d (#1): %v", params[0], err)
+	}
+	v2, err := cpu.GetRegister(register.Register(params[1]))
+	if err != nil {
+		return fmt.Errorf("SUB_REG_REG: error fetching from register %d (#2): %v", params[1], err)
+	}
+	return cpu.SetRegister(register.Ac, v1-v2)
+}
+
 type Jump struct{}
 
 func (x Jump) Execute(params []byte, cpu *cpu.Cpu) error {

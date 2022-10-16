@@ -53,6 +53,14 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.AddTwo{},
 	},
+	instruction.SUB_REG_REG: {
+		Description: "Subtract contents of two registers",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM8,
+			instruction.PARAM8,
+		},
+		Executor: instruction.SubTwo{},
+	},
 	instruction.JNE: {
 		Description: "Jump if not equal",
 		Parameters: []instruction.Parameter{

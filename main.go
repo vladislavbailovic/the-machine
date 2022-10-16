@@ -12,13 +12,11 @@ import (
 func main() {
 	vm := machine.NewMachine(255)
 	vm.LoadProgram(0, []byte{
-		byte(instruction.MOV_LIT_AC), 0x01, 0x00,
+		byte(instruction.MOV_LIT_AC), 0x02, 0x00,
+		byte(instruction.MOV_LIT_R1), 0x04, 0x00,
+		byte(instruction.MUL_REG_REG), byte(register.Ac), byte(register.R1),
 		byte(instruction.MOV_LIT_R1), 0x02, 0x00,
-		byte(instruction.SUB_REG_REG), byte(register.Ac), byte(register.R1),
-		byte(instruction.MOV_LIT_R1), 0x01, 0x00,
-		byte(instruction.SUB_REG_REG), byte(register.Ac), byte(register.R1),
-		byte(instruction.MOV_LIT_R1), 0x03, 0x00,
-		byte(instruction.ADD_REG_REG), byte(register.Ac), byte(register.R1),
+		byte(instruction.DIV_REG_REG), byte(register.Ac), byte(register.R1),
 		byte(instruction.HALT),
 	})
 

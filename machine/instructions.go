@@ -61,6 +61,22 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.SubTwo{},
 	},
+	instruction.MUL_REG_REG: {
+		Description: "Multiply contents of two registers",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM8,
+			instruction.PARAM8,
+		},
+		Executor: instruction.MulTwo{},
+	},
+	instruction.DIV_REG_REG: {
+		Description: "Divide contents of two registers",
+		Parameters: []instruction.Parameter{
+			instruction.PARAM8,
+			instruction.PARAM8,
+		},
+		Executor: instruction.DivTwo{},
+	},
 	instruction.JNE: {
 		Description: "Jump if not equal",
 		Parameters: []instruction.Parameter{

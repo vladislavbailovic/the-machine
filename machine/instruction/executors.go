@@ -64,6 +64,26 @@ func (x SubTwo) Execute(params []byte, cpu *cpu.Cpu) error {
 	return cpu.SetRegister(register.Ac, v1-v2)
 }
 
+type MulTwo struct{}
+
+func (x MulTwo) Execute(params []byte, cpu *cpu.Cpu) error {
+	v1, v2, err := getRegistersForOp("MUL_REG_REG", cpu, params)
+	if err != nil {
+		return err
+	}
+	return cpu.SetRegister(register.Ac, v1*v2)
+}
+
+type DivTwo struct{}
+
+func (x DivTwo) Execute(params []byte, cpu *cpu.Cpu) error {
+	v1, v2, err := getRegistersForOp("DIV_REG_REG", cpu, params)
+	if err != nil {
+		return err
+	}
+	return cpu.SetRegister(register.Ac, v1/v2)
+}
+
 type Jump struct{}
 
 func (x Jump) Execute(params []byte, cpu *cpu.Cpu) error {

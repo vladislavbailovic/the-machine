@@ -11,6 +11,8 @@ const (
 	MOV_LIT_R4  Type = iota
 	ADD_REG_REG Type = iota
 	SUB_REG_REG Type = iota
+	MUL_REG_REG Type = iota
+	DIV_REG_REG Type = iota
 	JNE         Type = iota
 	HALT        Type = iota
 	END         Type = iota

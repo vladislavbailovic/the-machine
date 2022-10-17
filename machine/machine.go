@@ -36,7 +36,7 @@ func NewMachine(memsize int) Machine {
 func (vm *Machine) LoadProgram(at memory.Address, program []byte) error {
 	for idx, b := range program {
 		if err := vm.memory.SetByte(at+memory.Address(idx), b); err != nil {
-			return fmt.Errorf("error loading program at %d+%d (0x%02x): %v", at, idx, b, err)
+			return fmt.Errorf("error loading program at %d+%d (%#02x): %v", at, idx, b, err)
 		}
 	}
 	vm.status = Loaded
@@ -73,11 +73,11 @@ func (vm *Machine) executeInstruction(instr byte) error {
 	instruction, ok := Instructions[instructionType]
 	if !ok {
 		vm.status = Error
-		return fmt.Errorf("unknown instruction: 0x%02x", instr)
+		return fmt.Errorf("unknown instruction: %#02x", instr)
 	}
 	if err := instruction.Execute(vm.cpu, vm.memory); err != nil {
 		vm.status = Error
-		return fmt.Errorf("error executing 0x%02x: %v", instr, err)
+		return fmt.Errorf("error executing %#02x: %v", instr, err)
 	}
 	return nil
 }

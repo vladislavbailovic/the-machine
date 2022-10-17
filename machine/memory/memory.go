@@ -42,7 +42,7 @@ func (mem Memory) GetUint16(at Address) (uint16, error) {
 
 func (mem *Memory) SetByte(at Address, value byte) error {
 	if int(at) > cap(*mem) {
-		return fmt.Errorf("invalid memory access at %d (of %d): trying to set byte 0x%02x", at, len(*mem), value)
+		return fmt.Errorf("invalid memory access at %d (of %d): trying to set byte %#02x", at, len(*mem), value)
 	}
 	(*mem)[at] = value
 	return nil

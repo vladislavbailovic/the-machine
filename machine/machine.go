@@ -109,10 +109,23 @@ func (vm Machine) IsDone() bool {
 }
 
 func (vm *Machine) Debug() {
+	bpos := make([]string, 8)
+	bval := make([]string, 8)
 	positions := make([]string, 8)
 	values := make([]string, 8)
+	apos := make([]string, 8)
+	aval := make([]string, 8)
 
 	ad, _ := vm.cpu.GetRegister(register.Ip)
+
+	if ad > 8 {
+		for i := 0; i < 8; i++ {
+			pos := (ad + uint16(i)) - 8
+			bpos[i] = fmt.Sprintf("%04d", pos)
+			b, _ := vm.memory.GetByte(memory.Address(pos))
+			bval[i] = fmt.Sprintf("%#02x", b)
+		}
+	}
 
 	for i := 0; i < 8; i++ {
 		pos := ad + uint16(i)
@@ -120,6 +133,14 @@ func (vm *Machine) Debug() {
 		b, _ := vm.memory.GetByte(memory.Address(pos))
 		values[i] = fmt.Sprintf("%#02x", b)
 	}
+
+	for i := 0; i < 8; i++ {
+		pos := ad + uint16(i+8)
+		apos[i] = fmt.Sprintf("%04d", pos)
+		b, _ := vm.memory.GetByte(memory.Address(pos))
+		aval[i] = fmt.Sprintf("%#02x", b)
+	}
+
 	positions = append(positions, " | ")
 	values = append(values, " | ")
 
@@ -140,10 +161,22 @@ func (vm *Machine) Debug() {
 	putReg("Ac", register.Ac)
 
 	posStr := strings.Join(positions, " ")
+	after := strings.Join(apos, " ")
 
 	fmt.Println()
+	if ad > 8 {
+		before := strings.Join(bpos, " ")
+		fmt.Println(before)
+		fmt.Println(strings.Repeat("-", len(before)))
+		fmt.Println(strings.Join(bval, " "))
+		fmt.Println()
+	}
 	fmt.Println(posStr)
 	fmt.Println(strings.Repeat("-", len(posStr)))
 	fmt.Println(strings.Join(values, " "))
+	fmt.Println()
+	fmt.Println(after)
+	fmt.Println(strings.Repeat("-", len(after)))
+	fmt.Println(strings.Join(aval, " "))
 	fmt.Println()
 }

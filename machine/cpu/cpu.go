@@ -16,15 +16,6 @@ func NewCpu() *Cpu {
 	return &Cpu{registers: registers, memory: memory.NewMemory(255)}
 }
 
-func (cpu *Cpu) LoadProgram(at memory.Address, program []byte) error {
-	for idx, b := range program {
-		if err := cpu.memory.SetByte(at+memory.Address(idx), b); err != nil {
-			return fmt.Errorf("error loading program at %d+%d (0x%02x): %v", at, idx, b, err)
-		}
-	}
-	return nil
-}
-
 func (cpu Cpu) GetRegister(r register.Register) (uint16, error) {
 	if reg, err := cpu.registers.GetUint16(r.AsAddress()); err != nil {
 		return 0, fmt.Errorf("Unknown register: %d: %v", reg, err)

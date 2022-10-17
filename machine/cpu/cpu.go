@@ -12,7 +12,7 @@ type Cpu struct {
 }
 
 func NewCpu() *Cpu {
-	registers := memory.NewMemory(int(register.Size()) * 2)
+	registers := memory.NewMemory(register.Size())
 	return &Cpu{registers: registers, memory: memory.NewMemory(255)}
 }
 
@@ -26,7 +26,7 @@ func (cpu *Cpu) LoadProgram(at memory.Address, program []byte) error {
 }
 
 func (cpu Cpu) GetRegister(r register.Register) (uint16, error) {
-	if reg, err := cpu.registers.GetUint16(memory.Address(r.Address())); err != nil {
+	if reg, err := cpu.registers.GetUint16(r.AsAddress()); err != nil {
 		return 0, fmt.Errorf("Unknown register: %d: %v", reg, err)
 	} else {
 		return reg, nil
@@ -34,5 +34,5 @@ func (cpu Cpu) GetRegister(r register.Register) (uint16, error) {
 }
 
 func (cpu *Cpu) SetRegister(r register.Register, v uint16) error {
-	return cpu.registers.SetUint16(memory.Address(r.Address()), v)
+	return cpu.registers.SetUint16(r.AsAddress(), v)
 }

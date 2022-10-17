@@ -1,5 +1,7 @@
 package register
 
+import "the-machine/machine/memory"
+
 type Register byte
 
 const (
@@ -9,14 +11,17 @@ const (
 	R2            Register = iota
 	R3            Register = iota
 	R4            Register = iota
-	_registerSize          = iota
+	_registerSize Register = iota
 )
 
-func Size() byte {
-	return _registerSize
+func Size() int {
+	return int(_registerSize.AsAddress()) * 2
 }
 
-func (r Register) Address() uint16 {
-	return uint16(r * 2)
+func (r Register) AsAddress() memory.Address {
+	return memory.Address(r * 2)
+}
 
+func (r Register) AsByte() byte {
+	return byte(r)
 }

@@ -28,7 +28,7 @@ func (x Instruction) Execute(cpu *cpu.Cpu, memory *memory.Memory) error {
 func (x Instruction) getParams(cpu *cpu.Cpu, mem *memory.Memory) ([]byte, error) {
 	length := 0
 	for _, p := range x.Parameters {
-		length += int(p)
+		length += p.GetBytesLength()
 	}
 	params := []byte{}
 
@@ -38,14 +38,14 @@ func (x Instruction) getParams(cpu *cpu.Cpu, mem *memory.Memory) ([]byte, error)
 	}
 	for idx, p := range x.Parameters {
 		switch p {
-		case PARAM8:
+		case ParamRegister:
 			val, err := mem.GetByte(memory.Address(pos))
 			if err != nil {
 				return params, fmt.Errorf("%s: error getting param %d: %v", x.Description, idx, err)
 			}
 			pos++
 			params = append(params, val)
-		case PARAM16:
+		case ParamLiteral, ParamAddress:
 			hi, err := mem.GetByte(memory.Address(pos))
 			if err != nil {
 				return params, fmt.Errorf("%s: error getting param %d: %v", x.Description, idx, err)

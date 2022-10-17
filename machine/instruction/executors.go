@@ -37,7 +37,11 @@ func (x Reg2Mem) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error 
 	if len(params) != 3 {
 		return fmt.Errorf("REG2MEM: invalid parameter: %v", params)
 	}
-	value := cpu.GetRegister(register.Register(params[0]))
+	r1, err := register.FromByte(params[0])
+	if err != nil {
+		return fmt.Errorf("REG2MEM: invalid register (%#02x): %v", params[0], err)
+	}
+	value := cpu.GetRegister(r1)
 	address := memory.Address(binary.LittleEndian.Uint16(params[1:]))
 	return mem.SetUint16(address, value)
 }
@@ -61,8 +65,16 @@ func (x OperateReg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) err
 	if len(params) != 2 {
 		return fmt.Errorf("OP_REG %d: invalid params: %v", x.Operation, params)
 	}
-	v1 := cpu.GetRegister(register.Register(params[0]))
-	v2 := cpu.GetRegister(register.Register(params[1]))
+	r1, err := register.FromByte(params[0])
+	if err != nil {
+		return fmt.Errorf("OP_REG %d: invalid register #1 (%#02x): %v", x.Operation, params[0], err)
+	}
+	v1 := cpu.GetRegister(r1)
+	r2, err := register.FromByte(params[1])
+	if err != nil {
+		return fmt.Errorf("OP_REG %d: invalid register #2 (%#02x): %v", x.Operation, params[1], err)
+	}
+	v2 := cpu.GetRegister(r2)
 
 	switch x.Operation {
 	case OpAdd:
@@ -93,7 +105,11 @@ func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) 
 	if len(params) != 3 {
 		return fmt.Errorf("OP_REG_LIT %d: invalid params: %v", x.Operation, params)
 	}
-	reg := cpu.GetRegister(register.Register(params[0]))
+	r1, err := register.FromByte(params[0])
+	if err != nil {
+		return fmt.Errorf("OP_REG_LIT %d: invalid register (%#02x): %v", x.Operation, params[0], err)
+	}
+	reg := cpu.GetRegister(r1)
 	literal := binary.LittleEndian.Uint16(params[1:])
 
 	switch x.Operation {

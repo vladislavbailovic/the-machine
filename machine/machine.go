@@ -44,10 +44,7 @@ func (vm *Machine) LoadProgram(at memory.Address, program []byte) error {
 }
 
 func (vm *Machine) nextInstruction() (byte, error) {
-	ip, err := vm.cpu.GetRegister(register.Ip)
-	if err != nil {
-		return 0, fmt.Errorf("unable to access IP register: %v", err)
-	}
+	ip := vm.cpu.GetRegister(register.Ip)
 
 	ipAddr := memory.Address(ip)
 	instr, err := vm.memory.GetByte(ipAddr)
@@ -55,9 +52,7 @@ func (vm *Machine) nextInstruction() (byte, error) {
 		return instr, fmt.Errorf("unable to get next instruction: %v", err)
 	}
 
-	if err := vm.cpu.SetRegister(register.Ip, ip+1); err != nil {
-		return instr, fmt.Errorf("unable to update IP register: %v", err)
-	}
+	vm.cpu.SetRegister(register.Ip, ip+1)
 
 	return instr, nil
 }
@@ -116,7 +111,7 @@ func (vm *Machine) Debug() {
 	apos := make([]string, 8)
 	aval := make([]string, 8)
 
-	ad, _ := vm.cpu.GetRegister(register.Ip)
+	ad := vm.cpu.GetRegister(register.Ip)
 
 	if ad > 8 {
 		for i := 0; i < 8; i++ {
@@ -145,7 +140,7 @@ func (vm *Machine) Debug() {
 	values = append(values, " | ")
 
 	putReg := func(name string, r register.Register) {
-		r1, _ := vm.cpu.GetRegister(r)
+		r1 := vm.cpu.GetRegister(r)
 		value := fmt.Sprintf("%4d", r1)
 		format := fmt.Sprintf("%%%ds", len(value))
 

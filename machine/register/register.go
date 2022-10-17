@@ -1,7 +1,5 @@
 package register
 
-import "the-machine/machine/memory"
-
 type Register byte
 
 const (
@@ -15,11 +13,7 @@ const (
 )
 
 func Size() int {
-	return int(_registerSize.AsAddress()) * 2
-}
-
-func (r Register) AsAddress() memory.Address {
-	return memory.Address(r * 2)
+	return int(_registerSize)
 }
 
 func (r Register) AsByte() byte {

@@ -32,10 +32,7 @@ func (x Instruction) getParams(cpu *cpu.Cpu, mem *memory.Memory) ([]byte, error)
 	}
 	params := []byte{}
 
-	pos, err := cpu.GetRegister(register.Ip)
-	if err != nil {
-		return params, fmt.Errorf("%s: error fetching Ip register: %v", x.Description, err)
-	}
+	pos := cpu.GetRegister(register.Ip)
 	for idx, p := range x.Parameters {
 		switch p {
 		case ParamRegister:
@@ -62,9 +59,7 @@ func (x Instruction) getParams(cpu *cpu.Cpu, mem *memory.Memory) ([]byte, error)
 			return params, fmt.Errorf("unexpected parameter: %d", p)
 		}
 	}
-	if err != cpu.SetRegister(register.Ip, pos) {
-		return params, fmt.Errorf("%s: error updating Ip register: %v", x.Description, err)
-	}
+	cpu.SetRegister(register.Ip, pos)
 
 	return params, nil
 }

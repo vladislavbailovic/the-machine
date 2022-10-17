@@ -32,8 +32,8 @@ func Test_Execute_Program(t *testing.T) {
 		}
 	}
 	vm.Debug()
-	if val, err := vm.cpu.GetRegister(register.Ac); err != nil || val != 1312+161 {
-		t.Fatalf("expected %d in Ac, got %#02x (%d) instead, err: %v", 1312+161, val, val, err)
+	if val := vm.cpu.GetRegister(register.Ac); val != 1312+161 {
+		t.Fatalf("expected %d in Ac, got %#02x (%d) instead", 1312+161, val, val)
 	}
 	if 20 != step {
 		t.Fatalf("expected nohalt program to run to external limit, break after %d", step)
@@ -63,11 +63,11 @@ func Test_Execute_Loop(t *testing.T) {
 		}
 	}
 
-	if val, err := vm.cpu.GetRegister(register.R2); err != nil || val != 0xacab {
-		t.Fatalf("expected %#02x in R2, got %#02x instead, err: %v", 0xacab, val, err)
+	if val := vm.cpu.GetRegister(register.R2); val != 0xacab {
+		t.Fatalf("expected %#02x in R2, got %#02x instead", 0xacab, val)
 	}
-	if val, err := vm.cpu.GetRegister(register.Ac); err != nil || val != 3 {
-		t.Fatalf("expected 3 in Ac, got %#02x instead, err: %v", val, err)
+	if val := vm.cpu.GetRegister(register.Ac); val != 3 {
+		t.Fatalf("expected 3 in Ac, got %#02x instead", val)
 	}
 	if step != 8 {
 		t.Fatalf("expected exactly %d steps but got %d", 8, step)

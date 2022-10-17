@@ -27,7 +27,8 @@ func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error 
 		return fmt.Errorf("LIT2REG[%v]: invalid parameter: %v", x.Target, params)
 	}
 	value := binary.LittleEndian.Uint16(params)
-	return cpu.SetRegister(x.Target, value)
+	cpu.SetRegister(x.Target, value)
+	return nil
 }
 
 type Reg2Mem struct{}
@@ -36,10 +37,7 @@ func (x Reg2Mem) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error 
 	if len(params) != 3 {
 		return fmt.Errorf("REG2MEM: invalid parameter: %v", params)
 	}
-	value, err := cpu.GetRegister(register.Register(params[0]))
-	if err != nil {
-		return fmt.Errorf("REG2MEM: error fetching from register %d (#2): %v", params[0], err)
-	}
+	value := cpu.GetRegister(register.Register(params[0]))
 	address := memory.Address(binary.LittleEndian.Uint16(params[1:]))
 	return mem.SetUint16(address, value)
 }
@@ -63,26 +61,25 @@ func (x OperateReg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) err
 	if len(params) != 2 {
 		return fmt.Errorf("OP_REG %d: invalid params: %v", x.Operation, params)
 	}
-	v1, err := cpu.GetRegister(register.Register(params[0]))
-	if err != nil {
-		return fmt.Errorf("OP_REG %d: error fetching from register %d (#1): %v", x.Operation, params[0], err)
-	}
-	v2, err := cpu.GetRegister(register.Register(params[1]))
-	if err != nil {
-		return fmt.Errorf("OP_REG %d: error fetching from register %d (#2): %v", x.Operation, params[1], err)
-	}
+	v1 := cpu.GetRegister(register.Register(params[0]))
+	v2 := cpu.GetRegister(register.Register(params[1]))
 
 	switch x.Operation {
 	case OpAdd:
-		return cpu.SetRegister(register.Ac, v1+v2)
+		cpu.SetRegister(register.Ac, v1+v2)
+		return nil
 	case OpSub:
-		return cpu.SetRegister(register.Ac, v1-v2)
+		cpu.SetRegister(register.Ac, v1-v2)
+		return nil
 	case OpMul:
-		return cpu.SetRegister(register.Ac, v1*v2)
+		cpu.SetRegister(register.Ac, v1*v2)
+		return nil
 	case OpDiv:
-		return cpu.SetRegister(register.Ac, v1/v2)
+		cpu.SetRegister(register.Ac, v1/v2)
+		return nil
 	case OpMod:
-		return cpu.SetRegister(register.Ac, v1%v2)
+		cpu.SetRegister(register.Ac, v1%v2)
+		return nil
 	default:
 		return fmt.Errorf("OP_REG %d: unknown operation", x.Operation)
 	}
@@ -96,23 +93,25 @@ func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) 
 	if len(params) != 3 {
 		return fmt.Errorf("OP_REG_LIT %d: invalid params: %v", x.Operation, params)
 	}
-	reg, err := cpu.GetRegister(register.Register(params[0]))
-	if err != nil {
-		return fmt.Errorf("OP_REG_LIT %d: error fetching from register %d (#2): %v", x.Operation, params[0], err)
-	}
+	reg := cpu.GetRegister(register.Register(params[0]))
 	literal := binary.LittleEndian.Uint16(params[1:])
 
 	switch x.Operation {
 	case OpAdd:
-		return cpu.SetRegister(register.Ac, reg+literal)
+		cpu.SetRegister(register.Ac, reg+literal)
+		return nil
 	case OpSub:
-		return cpu.SetRegister(register.Ac, reg-literal)
+		cpu.SetRegister(register.Ac, reg-literal)
+		return nil
 	case OpMul:
-		return cpu.SetRegister(register.Ac, reg*literal)
+		cpu.SetRegister(register.Ac, reg*literal)
+		return nil
 	case OpDiv:
-		return cpu.SetRegister(register.Ac, reg/literal)
+		cpu.SetRegister(register.Ac, reg/literal)
+		return nil
 	case OpMod:
-		return cpu.SetRegister(register.Ac, reg%literal)
+		cpu.SetRegister(register.Ac, reg%literal)
+		return nil
 	default:
 		return fmt.Errorf("OP_REG_LIT %d: unknown operation", x.Operation)
 	}
@@ -123,10 +122,7 @@ type Jump struct {
 }
 
 func (x Jump) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
-	acu, err := cpu.GetRegister(register.Register(register.Ac))
-	if err != nil {
-		return fmt.Errorf("JMP[%d]: error fetching from Ac: %v", x.Comparison, err)
-	}
+	acu := cpu.GetRegister(register.Register(register.Ac))
 
 	if len(params) != 4 {
 		return fmt.Errorf("JMP[%d][%v]: invalid parameter: %v", x.Comparison, acu, params)
@@ -165,7 +161,7 @@ func (x Jump) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
 	}
 
 	if writeIp {
-		return cpu.SetRegister(register.Ip, address)
+		cpu.SetRegister(register.Ip, address)
 	}
 	return nil
 }

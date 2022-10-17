@@ -73,3 +73,41 @@ func Test_Execute_Loop(t *testing.T) {
 		t.Fatalf("expected exactly %d steps but got %d", 8, step)
 	}
 }
+
+func Test_CopyToMemory(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	address := make([]byte, 2)
+	binary.LittleEndian.PutUint16(address, uint16(161))
+	vm.LoadProgram(0, []byte{
+		instruction.MOV_LIT_R1.AsByte(), 0x12, 0x00,
+		instruction.MOV_REG_MEM.AsByte(), register.R1.AsByte(), 0x13, 0x00,
+		instruction.MOV_LIT_MEM.AsByte(), 0xab, 0xac, address[0], address[1],
+		instruction.HALT.AsByte(),
+	})
+
+	step := 0
+	for step < 20 {
+		vm.Debug()
+		if err := vm.Tick(); err != nil {
+			t.Fatalf("error at tick %d: %v", step, err)
+		}
+		step++
+		if vm.IsDone() {
+			break
+		}
+	}
+
+	if val, err := vm.memory.GetUint16(memory.Address(0x13)); err != nil || val != 0x12 {
+		t.Fatalf("expected %#02x (%d) at address %#02x (%d), got %#02x (%d), err %v",
+			0x12, 0x12, 0x13, 0x13, val, val, err)
+	}
+
+	if val, err := vm.memory.GetUint16(memory.Address(161)); err != nil || val != 0xacab {
+		t.Fatalf("expected %#02x (%d) at address %#02x (%d), got %#02x (%d), err %v",
+			0xacab, 0xacab, 161, 161, val, val, err)
+	}
+
+	if step != 4 {
+		t.Fatalf("expected exactly %d steps but got %d", 4, step)
+	}
+}

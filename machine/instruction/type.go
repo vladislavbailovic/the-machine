@@ -11,6 +11,9 @@ const (
 	MOV_LIT_R3 Type = iota
 	MOV_LIT_R4 Type = iota
 
+	MOV_REG_MEM Type = iota
+	MOV_LIT_MEM Type = iota
+
 	ADD_REG_REG Type = iota
 	ADD_REG_LIT Type = iota
 

@@ -4,16 +4,17 @@ import (
 	"encoding/binary"
 	"fmt"
 	"the-machine/machine/cpu"
+	"the-machine/machine/memory"
 	"the-machine/machine/register"
 )
 
 type Executor interface {
-	Execute([]byte, *cpu.Cpu) error
+	Execute([]byte, *cpu.Cpu, *memory.Memory) error
 }
 
 type Passthrough struct{}
 
-func (x Passthrough) Execute(p []byte, cpu *cpu.Cpu) error {
+func (x Passthrough) Execute(_ []byte, _ *cpu.Cpu, _ *memory.Memory) error {
 	return nil
 }
 
@@ -21,7 +22,7 @@ type Lit2Reg struct {
 	Target register.Register
 }
 
-func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu) error {
+func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
 	if len(params) != 2 {
 		return fmt.Errorf("LIT2REG[%v]: invalid parameter: %v", x.Target, params)
 	}
@@ -29,11 +30,36 @@ func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu) error {
 	return cpu.SetRegister(x.Target, value)
 }
 
+type Reg2Mem struct{}
+
+func (x Reg2Mem) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
+	if len(params) != 3 {
+		return fmt.Errorf("REG2MEM: invalid parameter: %v", params)
+	}
+	value, err := cpu.GetRegister(register.Register(params[0]))
+	if err != nil {
+		return fmt.Errorf("REG2MEM: error fetching from register %d (#2): %v", params[0], err)
+	}
+	address := memory.Address(binary.LittleEndian.Uint16(params[1:]))
+	return mem.SetUint16(address, value)
+}
+
+type Lit2Mem struct{}
+
+func (x Lit2Mem) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
+	if len(params) != 4 {
+		return fmt.Errorf("LIT2MEM: invalid parameter: %v", params)
+	}
+	value := binary.LittleEndian.Uint16(params[:2])
+	address := memory.Address(binary.LittleEndian.Uint16(params[2:]))
+	return mem.SetUint16(address, value)
+}
+
 type OperateReg struct {
 	Operation Op
 }
 
-func (x OperateReg) Execute(params []byte, cpu *cpu.Cpu) error {
+func (x OperateReg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
 	if len(params) != 2 {
 		return fmt.Errorf("OP_REG %d: invalid params: %v", x.Operation, params)
 	}
@@ -66,7 +92,7 @@ type OperateRegLit struct {
 	Operation Op
 }
 
-func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu) error {
+func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
 	if len(params) != 3 {
 		return fmt.Errorf("OP_REG_LIT %d: invalid params: %v", x.Operation, params)
 	}
@@ -96,7 +122,7 @@ type Jump struct {
 	Comparison Comparison
 }
 
-func (x Jump) Execute(params []byte, cpu *cpu.Cpu) error {
+func (x Jump) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
 	acu, err := cpu.GetRegister(register.Register(register.Ac))
 	if err != nil {
 		return fmt.Errorf("JMP[%d]: error fetching from Ac: %v", x.Comparison, err)

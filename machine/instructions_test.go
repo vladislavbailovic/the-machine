@@ -27,8 +27,17 @@ func Test_Execute_Program(t *testing.T) {
 			t.Fatalf("error at tick %d: %v", step, err)
 		}
 		step++
+		if vm.IsDone() {
+			break
+		}
 	}
 	vm.Debug()
+	if val, err := vm.cpu.GetRegister(register.Ac); err != nil || val != 1312+161 {
+		t.Fatalf("expected %d in Ac, got %#02x (%d) instead, err: %v", 1312+161, val, val, err)
+	}
+	if 20 != step {
+		t.Fatalf("expected nohalt program to run to external limit, break after %d", step)
+	}
 }
 
 func Test_Execute_Loop(t *testing.T) {
@@ -38,7 +47,7 @@ func Test_Execute_Loop(t *testing.T) {
 		instruction.MOV_LIT_R1.AsByte(), 0x01, 0x00,
 		instruction.ADD_REG_REG.AsByte(), register.Ac.AsByte(), register.R1.AsByte(),
 		instruction.JNE.AsByte(), 0x03, 0x00, 0x06, 0x00,
-		instruction.MOV_LIT_R2.AsByte(), 0xac, 0xab,
+		instruction.MOV_LIT_R2.AsByte(), 0xab, 0xac,
 		instruction.HALT.AsByte(),
 	})
 
@@ -52,5 +61,15 @@ func Test_Execute_Loop(t *testing.T) {
 		if vm.IsDone() {
 			break
 		}
+	}
+
+	if val, err := vm.cpu.GetRegister(register.R2); err != nil || val != 0xacab {
+		t.Fatalf("expected %#02x in R2, got %#02x instead, err: %v", 0xacab, val, err)
+	}
+	if val, err := vm.cpu.GetRegister(register.Ac); err != nil || val != 3 {
+		t.Fatalf("expected 3 in Ac, got %#02x instead, err: %v", val, err)
+	}
+	if step != 8 {
+		t.Fatalf("expected exactly %d steps but got %d", 8, step)
 	}
 }

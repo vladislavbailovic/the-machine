@@ -16,9 +16,9 @@ func Test_Execute_Program(t *testing.T) {
 	b2 := make([]byte, 2)
 	binary.LittleEndian.PutUint16(b2, uint16(161))
 	vm.LoadProgram(0, []byte{
-		byte(instruction.MOV_LIT_R1), b1[0], b1[1],
-		byte(instruction.MOV_LIT_R2), b2[0], b2[1],
-		byte(instruction.ADD_REG_REG), register.R1.AsByte(), register.R2.AsByte(),
+		instruction.MOV_LIT_R1.AsByte(), b1[0], b1[1],
+		instruction.MOV_LIT_R2.AsByte(), b2[0], b2[1],
+		instruction.ADD_REG_REG.AsByte(), register.R1.AsByte(), register.R2.AsByte(),
 	})
 
 	step := 0
@@ -34,12 +34,12 @@ func Test_Execute_Program(t *testing.T) {
 func Test_Execute_Loop(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	vm.LoadProgram(0, []byte{
-		byte(instruction.MOV_LIT_AC), 0x01, 0x00,
-		byte(instruction.MOV_LIT_R1), 0x01, 0x00,
-		byte(instruction.ADD_REG_REG), register.Ac.AsByte(), register.R1.AsByte(),
-		byte(instruction.JNE), 0x03, 0x00, 0x06, 0x00,
-		byte(instruction.MOV_LIT_R2), 0xac, 0xab,
-		byte(instruction.HALT),
+		instruction.MOV_LIT_AC.AsByte(), 0x01, 0x00,
+		instruction.MOV_LIT_R1.AsByte(), 0x01, 0x00,
+		instruction.ADD_REG_REG.AsByte(), register.Ac.AsByte(), register.R1.AsByte(),
+		instruction.JNE.AsByte(), 0x03, 0x00, 0x06, 0x00,
+		instruction.MOV_LIT_R2.AsByte(), 0xac, 0xab,
+		instruction.HALT.AsByte(),
 	})
 
 	step := 0

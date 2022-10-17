@@ -37,6 +37,10 @@ const (
 	END  Type = iota
 )
 
+func (x Type) AsByte() byte {
+	return byte(x)
+}
+
 type Op byte
 
 const (

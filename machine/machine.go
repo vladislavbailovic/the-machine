@@ -92,7 +92,7 @@ func (vm *Machine) Tick() error {
 		return fmt.Errorf("unable to fetch next tick: %v", err)
 	}
 
-	if next == byte(instruction.END) {
+	if next == instruction.END.AsByte() {
 		// We are done here
 		return nil
 	}

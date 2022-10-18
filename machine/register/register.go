@@ -21,6 +21,11 @@ var Ac = Register{
 	pos:  0x02,
 }
 
+var Sp = Register{
+	name: "Stack Pointer",
+	pos:  0x03,
+}
+
 var R1 = Register{
 	name: "Register #1",
 	pos:  0x11,

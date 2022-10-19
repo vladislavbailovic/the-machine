@@ -26,6 +26,11 @@ var Sp = Register{
 	pos:  0x03,
 }
 
+var Fp = Register{
+	name: "Frame Pointer",
+	pos:  0x04,
+}
+
 var R1 = Register{
 	name: "Register #1",
 	pos:  0x11,

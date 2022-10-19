@@ -11,6 +11,7 @@ const stackSize = 255
 type Cpu struct {
 	registers map[register.Register]uint16
 	stack     *memory.Memory
+	stackSize int
 }
 
 func NewCpu() *Cpu {
@@ -18,6 +19,7 @@ func NewCpu() *Cpu {
 	registers[register.Ip] = 0
 	registers[register.Ac] = 0
 	registers[register.Sp] = 0
+	registers[register.Fp] = 0
 	registers[register.R1] = 0
 	registers[register.R2] = 0
 	registers[register.R3] = 0
@@ -46,6 +48,7 @@ func (cpu *Cpu) Push(value uint16) error {
 	if err := cpu.stack.SetUint16(memory.Address(address), value); err != nil {
 		return fmt.Errorf("stack overflow: %v", err)
 	}
+	cpu.stackSize++
 	cpu.SetRegister(register.Sp, address)
 	return nil
 }
@@ -60,6 +63,84 @@ func (cpu *Cpu) Pop() (uint16, error) {
 	if err != nil {
 		return value, fmt.Errorf("stack underflow: %v", err)
 	}
+	cpu.stackSize--
 	cpu.SetRegister(register.Sp, address-2)
 	return value, nil
+}
+
+func (cpu *Cpu) StoreFrame() error {
+	stackHead := uint16(cpu.stackSize)
+
+	if err := cpu.Push(cpu.GetRegister(register.R1)); err != nil {
+		return fmt.Errorf("error storing register R1: %v", err)
+	}
+	if err := cpu.Push(cpu.GetRegister(register.R2)); err != nil {
+		return fmt.Errorf("error storing register R2: %v", err)
+	}
+	if err := cpu.Push(cpu.GetRegister(register.R3)); err != nil {
+		return fmt.Errorf("error storing register R3: %v", err)
+	}
+	if err := cpu.Push(cpu.GetRegister(register.R4)); err != nil {
+		return fmt.Errorf("error storing register R4: %v", err)
+	}
+	if err := cpu.Push(cpu.GetRegister(register.Ip)); err != nil {
+		return fmt.Errorf("error storing register Ip: %v", err)
+	}
+	if err := cpu.Push(stackHead); err != nil {
+		return fmt.Errorf("error storing stack head: %v", err)
+	}
+
+	cpu.stackSize = 0
+	cpu.SetRegister(register.Fp, cpu.GetRegister(register.Sp))
+	return nil
+}
+
+func (cpu *Cpu) RestoreFrame() error {
+	framePointer := cpu.GetRegister(register.Fp)
+	cpu.SetRegister(register.Sp, framePointer)
+
+	stackHead, err := cpu.Pop()
+	if err != nil {
+		return fmt.Errorf("error restoring frame, no stack head: %v", err)
+	}
+
+	if value, err := cpu.Pop(); err != nil {
+		return fmt.Errorf("error restoring instruction pointer: %v", err)
+	} else {
+		cpu.SetRegister(register.Ip, value)
+	}
+
+	if value, err := cpu.Pop(); err != nil {
+		return fmt.Errorf("error restoring register 4: %v", err)
+	} else {
+		cpu.SetRegister(register.R4, value)
+	}
+
+	if value, err := cpu.Pop(); err != nil {
+		return fmt.Errorf("error restoring register 3: %v", err)
+	} else {
+		cpu.SetRegister(register.R3, value)
+	}
+
+	if value, err := cpu.Pop(); err != nil {
+		return fmt.Errorf("error restoring register 2: %v", err)
+	} else {
+		cpu.SetRegister(register.R2, value)
+	}
+
+	if value, err := cpu.Pop(); err != nil {
+		return fmt.Errorf("error restoring register 1: %v", err)
+	} else {
+		cpu.SetRegister(register.R1, value)
+	}
+
+	// reset stack
+	cpu.stackSize = int(stackHead)
+	for i := 0; i < int(stackHead); i++ {
+		cpu.Pop()
+	}
+
+	cpu.SetRegister(register.Fp, cpu.GetRegister(register.Sp))
+
+	return nil
 }

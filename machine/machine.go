@@ -43,7 +43,7 @@ func (vm *Machine) LoadProgram(at memory.Address, program []byte) error {
 	return nil
 }
 
-func (vm *Machine) nextInstruction() (byte, error) {
+func (vm *Machine) fetch() (byte, error) {
 	ip := vm.cpu.GetRegister(register.Ip)
 
 	ipAddr := memory.Address(ip)
@@ -57,20 +57,24 @@ func (vm *Machine) nextInstruction() (byte, error) {
 	return instr, nil
 }
 
-func (vm *Machine) executeInstruction(instr byte) error {
+func (vm *Machine) decode(instr byte) (instruction.Instruction, error) {
 	instructionType := instruction.Type(instr)
 	if instructionType == instruction.END || instructionType == instruction.HALT {
 		vm.status = Done
-		return nil
+		return Instructions[instruction.NOP], nil
 	}
 
 	vm.status = Running
-	instruction, ok := Instructions[instructionType]
+	decoded, ok := Instructions[instructionType]
 	if !ok {
 		vm.status = Error
-		return fmt.Errorf("unknown instruction: %#02x", instr)
+		return Instructions[instruction.NOP], fmt.Errorf("unknown instruction: %#02x", instr)
 	}
-	if err := instruction.Execute(vm.cpu, vm.memory); err != nil {
+	return decoded, nil
+}
+
+func (vm *Machine) execute(instr instruction.Instruction) error {
+	if err := instr.Execute(vm.cpu, vm.memory); err != nil {
 		vm.status = Error
 		return fmt.Errorf("error executing %#02x: %v", instr, err)
 	}
@@ -82,17 +86,17 @@ func (vm *Machine) Tick() error {
 		return nil
 	}
 
-	next, err := vm.nextInstruction()
+	next, err := vm.fetch()
 	if err != nil {
 		return fmt.Errorf("unable to fetch next tick: %v", err)
 	}
 
-	if next == instruction.END.AsByte() {
-		// We are done here
-		return nil
+	decoded, err := vm.decode(next)
+	if err != nil {
+		return fmt.Errorf("unable to decode instruction: %#02x", next)
 	}
 
-	if err := vm.executeInstruction(next); err != nil {
+	if err := vm.execute(decoded); err != nil {
 		return fmt.Errorf("unable to execute tick: %v", err)
 	}
 

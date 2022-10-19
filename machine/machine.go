@@ -19,10 +19,20 @@ const (
 	Error   Status = iota
 )
 
+type Cycle uint8
+
+const (
+	Idle    Cycle = 0
+	Fetch   Cycle = iota
+	Decode  Cycle = iota
+	Execute Cycle = iota
+)
+
 type Machine struct {
 	cpu    *cpu.Cpu
 	memory *memory.Memory
 	status Status
+	cycle  Cycle
 }
 
 func NewMachine(memsize int) Machine {
@@ -30,6 +40,7 @@ func NewMachine(memsize int) Machine {
 		cpu:    cpu.NewCpu(),
 		memory: memory.NewMemory(memsize),
 		status: Ready,
+		cycle:  Idle,
 	}
 }
 
@@ -44,11 +55,13 @@ func (vm *Machine) LoadProgram(at memory.Address, program []byte) error {
 }
 
 func (vm *Machine) fetch() (byte, error) {
+	vm.cycle = Fetch
 	ip := vm.cpu.GetRegister(register.Ip)
 
 	ipAddr := memory.Address(ip)
 	instr, err := vm.memory.GetByte(ipAddr)
 	if err != nil {
+		vm.status = Error
 		return instr, fmt.Errorf("unable to get next instruction: %v", err)
 	}
 
@@ -58,13 +71,13 @@ func (vm *Machine) fetch() (byte, error) {
 }
 
 func (vm *Machine) decode(instr byte) (instruction.Instruction, error) {
+	vm.cycle = Decode
 	instructionType := instruction.Type(instr)
 	if instructionType == instruction.END || instructionType == instruction.HALT {
 		vm.status = Done
 		return Instructions[instruction.NOP], nil
 	}
 
-	vm.status = Running
 	decoded, ok := Instructions[instructionType]
 	if !ok {
 		vm.status = Error
@@ -74,6 +87,7 @@ func (vm *Machine) decode(instr byte) (instruction.Instruction, error) {
 }
 
 func (vm *Machine) execute(instr instruction.Instruction) error {
+	vm.cycle = Execute
 	if err := instr.Execute(vm.cpu, vm.memory); err != nil {
 		vm.status = Error
 		return fmt.Errorf("error executing %#02x: %v", instr, err)
@@ -85,6 +99,8 @@ func (vm *Machine) Tick() error {
 	if vm.IsDone() {
 		return nil
 	}
+	vm.status = Running
+	vm.cycle = Idle
 
 	next, err := vm.fetch()
 	if err != nil {
@@ -99,6 +115,8 @@ func (vm *Machine) Tick() error {
 	if err := vm.execute(decoded); err != nil {
 		return fmt.Errorf("unable to execute tick: %v", err)
 	}
+
+	vm.cycle = Idle
 
 	return nil
 }

@@ -9,6 +9,10 @@ import (
 const stackSize = 255
 
 type Cpu struct {
+	ip        uint16
+	sp        uint16
+	fp        uint16
+	ac        uint16
 	registers map[register.Register]uint16
 	stack     *memory.Memory
 	stackSize int
@@ -16,26 +20,48 @@ type Cpu struct {
 
 func NewCpu() *Cpu {
 	registers := make(map[register.Register]uint16, 6)
-	registers[register.Ip] = 0
-	registers[register.Ac] = 0
-	registers[register.Sp] = 0
-	registers[register.Fp] = 0
 	registers[register.R1] = 0
 	registers[register.R2] = 0
 	registers[register.R3] = 0
 	registers[register.R4] = 0
+	registers[register.R5] = 0
+	registers[register.R6] = 0
+	registers[register.R7] = 0
+	registers[register.R8] = 0
 	return &Cpu{registers: registers, stack: memory.NewMemory(stackSize)}
 }
 
 func (cpu Cpu) GetRegister(r register.Register) uint16 {
-	if reg, ok := cpu.registers[r]; ok {
-		return reg
+	switch r {
+	case register.Ip:
+		return cpu.ip
+	case register.Sp:
+		return cpu.sp
+	case register.Fp:
+		return cpu.fp
+	case register.Ac:
+		return cpu.ac
+	default:
+		if reg, ok := cpu.registers[r]; ok {
+			return reg
+		}
+		return 0
 	}
-	return 0
 }
 
 func (cpu *Cpu) SetRegister(r register.Register, v uint16) {
-	cpu.registers[r] = v
+	switch r {
+	case register.Ip:
+		cpu.ip = v
+	case register.Sp:
+		cpu.sp = v
+	case register.Fp:
+		cpu.fp = v
+	case register.Ac:
+		cpu.ac = v
+	default:
+		cpu.registers[r] = v
+	}
 }
 
 func (cpu *Cpu) Push(value uint16) error {

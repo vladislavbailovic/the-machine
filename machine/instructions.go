@@ -43,7 +43,7 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		Parameters: []instruction.Parameter{
 			instruction.ParamLiteral,
 		},
-		Executor: instruction.Lit2Reg{Target: register.R2},
+		Executor: instruction.Lit2Reg{Target: register.R4},
 	},
 	instruction.MOV_REG_MEM: {
 		Description: "Copy content of register to memory address",

@@ -54,25 +54,30 @@ func (vm *Machine) LoadProgram(at memory.Address, program []byte) error {
 	return nil
 }
 
-func (vm *Machine) fetch() (byte, error) {
+func (vm *Machine) fetch() (uint16, error) {
 	vm.cycle = Fetch
 	ip := vm.cpu.GetRegister(register.Ip)
 
 	ipAddr := memory.Address(ip)
-	instr, err := vm.memory.GetByte(ipAddr)
+	instr, err := vm.memory.GetUint16(ipAddr)
 	if err != nil {
 		vm.status = Error
 		return instr, fmt.Errorf("unable to get next instruction: %v", err)
 	}
 
-	vm.cpu.SetRegister(register.Ip, ip+1)
+	vm.cpu.SetRegister(register.Ip, ip+2)
 
 	return instr, nil
 }
 
-func (vm *Machine) decode(instr byte) (instruction.Instruction, error) {
+func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 	vm.cycle = Decode
-	instructionType := instruction.Type(instr)
+
+	instrType := byte(
+		(instr >> 12) & 0b0000_0000_0000_1111,
+	)
+	instructionType := instruction.Type(instrType)
+	// fmt.Printf("\ngot:%016b\nins:%016b\nmeaning: %d\n", instr, instrType, instructionType)
 	if instructionType == instruction.END || instructionType == instruction.HALT {
 		vm.status = Done
 		return Instructions[instruction.NOP], nil
@@ -83,6 +88,8 @@ func (vm *Machine) decode(instr byte) (instruction.Instruction, error) {
 		vm.status = Error
 		return Instructions[instruction.NOP], fmt.Errorf("unknown instruction: %#02x", instr)
 	}
+	decoded.Raw = instr & 0b0000_1111_1111_1111
+	// fmt.Printf("cmd: %v (%d)\npass:\n%016b\n%016b\n", decoded, instructionType, instr, decoded.Raw)
 	return decoded, nil
 }
 

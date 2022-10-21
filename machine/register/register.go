@@ -13,22 +13,22 @@ func (r Register) AsByte() byte {
 
 var Ip = Register{
 	name: "Instruction Pointer",
-	pos:  0x11,
+	pos:  0xa1,
 }
 
 var Ac = Register{
 	name: "Accumulator",
-	pos:  0x12,
+	pos:  0xa2,
 }
 
 var Sp = Register{
 	name: "Stack Pointer",
-	pos:  0x13,
+	pos:  0xa3,
 }
 
 var Fp = Register{
 	name: "Frame Pointer",
-	pos:  0x14,
+	pos:  0xa4,
 }
 
 var R1 = Register{

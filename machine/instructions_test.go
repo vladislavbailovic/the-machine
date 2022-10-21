@@ -1,7 +1,7 @@
 package machine
 
 import (
-	"encoding/binary"
+	"fmt"
 	"testing"
 	"the-machine/machine/cpu"
 	"the-machine/machine/instruction"
@@ -9,6 +9,60 @@ import (
 	"the-machine/machine/register"
 )
 
+func run(vm Machine) (int, error) {
+	step := 0
+	for step < 1 {
+		if err := vm.Tick(); err != nil {
+			return step, fmt.Errorf("error at tick %d: %v", step, err)
+		}
+		step++
+		if vm.IsDone() {
+			break
+		}
+	}
+	return step, nil
+}
+
+func packInstruction(instr instruction.Type, value uint16) []byte {
+	inst1 := value | (uint16(instr.AsByte()) << 12)
+	// fmt.Printf("val:%016b\nins:%016b\nbot:%016b\n", value, uint16(instr), inst1)
+	// fmt.Printf("shl:%016b\nshr:%016b\n", (inst1 >> 8), (inst1 << 8))
+	return []byte{
+		byte(inst1),
+		byte(inst1 >> 8),
+	}
+}
+
+func Test_WordInstruction_All(t *testing.T) {
+	values := []uint16{161, 13, 12, 255, 512, 1024, 2047, 4095}
+	registers := map[register.Register]instruction.Type{
+		register.R1: instruction.MOV_LIT_R1,
+		register.R2: instruction.MOV_LIT_R2,
+		register.R3: instruction.MOV_LIT_R3,
+		register.R4: instruction.MOV_LIT_R4,
+	}
+
+	for idx, value := range values {
+		regIdx := 0
+		for reg, instr := range registers {
+			// fmt.Printf("--- %d::%d: %d into %v ---\n", idx, regIdx, value, reg)
+			vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+			vm.LoadProgram(0, packInstruction(instr, value))
+			if _, err := run(vm); err != nil {
+				t.Fatalf("error running machine: %v", err)
+			}
+			if vm.cpu.GetRegister(reg) != value {
+				vm.Debug()
+				t.Fatalf("%d: error setting immediate value %d to register %v: %d",
+					idx, value, reg, vm.cpu.GetRegister(reg))
+			}
+			regIdx++
+		}
+	}
+
+}
+
+/*
 func Test_Execute_Program(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	b1 := make([]byte, 2)
@@ -111,3 +165,4 @@ func Test_CopyToMemory(t *testing.T) {
 		t.Fatalf("expected exactly %d steps but got %d", 4, step)
 	}
 }
+*/

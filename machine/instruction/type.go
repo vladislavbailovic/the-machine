@@ -22,6 +22,7 @@ const (
 
 	ADD_REG_REG Type = iota
 	ADD_REG_LIT Type = iota
+	ADD_STACK   Type = iota
 
 	SUB_REG_REG Type = iota
 	SUB_REG_LIT Type = iota
@@ -57,6 +58,8 @@ func (x Type) AsByte() byte {
 func (x Type) Pack(raw ...uint16) []byte {
 	var value uint16
 	switch len(raw) {
+	case 0:
+		value = 0
 	case 1:
 		value = raw[0]
 	case 2:

@@ -191,6 +191,41 @@ func (x OperateRegLit) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) err
 	}
 }
 
+type OperateStack struct {
+	Operation Op
+}
+
+func (x OperateStack) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+	operand1, err := cpu.Pop()
+	if err != nil {
+		return fmt.Errorf("OP_STACK %d: stack underflow getting first operand: %v", x.Operation, err)
+	}
+	operand2, err := cpu.Pop()
+	if err != nil {
+		return fmt.Errorf("OP_STACK %d: stack underflow getting second operand: %v", x.Operation, err)
+	}
+
+	switch x.Operation {
+	case OpAdd:
+		cpu.Push(operand1 + operand2)
+		return nil
+	case OpSub:
+		cpu.Push(operand1 - operand2)
+		return nil
+	case OpMul:
+		cpu.Push(operand1 * operand2)
+		return nil
+	case OpDiv:
+		cpu.Push(operand1 / operand2)
+		return nil
+	case OpMod:
+		cpu.Push(operand1 % operand2)
+		return nil
+	default:
+		return fmt.Errorf("OP_STACK %d: unknown operation", x.Operation)
+	}
+}
+
 type Jump struct {
 	unpacker
 	Comparison Comparison

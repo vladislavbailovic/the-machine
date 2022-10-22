@@ -55,6 +55,15 @@ var Descriptors = map[Type]Instruction{
 		Executor:    Stack2Reg{},
 	},
 
+	// Stack math
+
+	ADD_STACK: {
+		Description: "Add top 2 stack values and push result",
+		Executor:    OperateStack{Operation: OpAdd},
+	},
+
+	// Math
+
 	ADD_REG_REG: {
 		Description: "Add contents of two registers",
 		Executor:    OperateReg{Operation: OpAdd},

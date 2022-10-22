@@ -13,62 +13,62 @@ func (r Register) AsByte() byte {
 
 var Ip = Register{
 	name: "Instruction Pointer",
-	pos:  0xa1,
+	pos:  15,
 }
 
 var Ac = Register{
 	name: "Accumulator",
-	pos:  0xa2,
+	pos:  14,
 }
 
 var Sp = Register{
 	name: "Stack Pointer",
-	pos:  0xa4,
+	pos:  13,
 }
 
 var Fp = Register{
 	name: "Frame Pointer",
-	pos:  0xa5,
+	pos:  12,
 }
 
 var R1 = Register{
 	name: "Register #1",
-	pos:  0b000,
+	pos:  0,
 }
 
 var R2 = Register{
 	name: "Register #2",
-	pos:  0b001,
+	pos:  1,
 }
 
 var R3 = Register{
 	name: "Register #3",
-	pos:  0b010,
+	pos:  2,
 }
 
 var R4 = Register{
 	name: "Register #4",
-	pos:  0b011,
+	pos:  3,
 }
 
 var R5 = Register{
 	name: "Register #5",
-	pos:  0b100,
+	pos:  4,
 }
 
 var R6 = Register{
 	name: "Register #6",
-	pos:  0b101,
+	pos:  5,
 }
 
 var R7 = Register{
 	name: "Register #7",
-	pos:  0b110,
+	pos:  6,
 }
 
 var R8 = Register{
 	name: "Register #8",
-	pos:  0b111,
+	pos:  7,
 }
 
 func FromByte(b byte) (Register, error) {

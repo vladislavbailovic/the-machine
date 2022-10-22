@@ -45,6 +45,13 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.Lit2Reg{Target: register.R4},
 	},
+	instruction.MOV_LIT_R7: {
+		Description: "Move literal to register R7",
+		Parameters: []instruction.Parameter{
+			instruction.ParamLiteral,
+		},
+		Executor: instruction.Lit2Reg{Target: register.R7},
+	},
 	instruction.MOV_REG_REG: {
 		Description: "Copy value from register to register",
 		Parameters:  []instruction.Parameter{},
@@ -151,9 +158,8 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.Lit2Mem{},
 	},
-
 	instruction.JEQ: {
-		Description: "Jump to if Ac equal to literal",
+		Description: "Jump to 2nd register address if Ac equal to 1st parameter register",
 		Parameters: []instruction.Parameter{
 			instruction.ParamLiteral,
 			instruction.ParamAddress,
@@ -161,7 +167,7 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		Executor: instruction.Jump{Comparison: instruction.CompEq},
 	},
 	instruction.JNE: {
-		Description: "Jump to if Ac not equal to literal",
+		Description: "Jump to 2nd register address if Ac not equal to 1st parameter register",
 		Parameters: []instruction.Parameter{
 			instruction.ParamLiteral,
 			instruction.ParamAddress,
@@ -169,7 +175,7 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		Executor: instruction.Jump{Comparison: instruction.CompNe},
 	},
 	instruction.JGT: {
-		Description: "Jump to if Ac greater than literal",
+		Description: "Jump to 2nd register address if Ac greater than 1st parameter register",
 		Parameters: []instruction.Parameter{
 			instruction.ParamLiteral,
 			instruction.ParamAddress,
@@ -177,7 +183,7 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		Executor: instruction.Jump{Comparison: instruction.CompGt},
 	},
 	instruction.JGE: {
-		Description: "Jump to if Ac greater than or equal to literal",
+		Description: "Jump to 2nd register address if Ac greater than or equal to 1st parameter register",
 		Parameters: []instruction.Parameter{
 			instruction.ParamLiteral,
 			instruction.ParamAddress,
@@ -185,7 +191,7 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		Executor: instruction.Jump{Comparison: instruction.CompGe},
 	},
 	instruction.JLT: {
-		Description: "Jump to if Ac less than literal",
+		Description: "Jump to 2nd register address if Ac less than 1st parameter register",
 		Parameters: []instruction.Parameter{
 			instruction.ParamLiteral,
 			instruction.ParamAddress,
@@ -193,7 +199,7 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		Executor: instruction.Jump{Comparison: instruction.CompLt},
 	},
 	instruction.JLE: {
-		Description: "Jump to if Ac less than or equal to literal",
+		Description: "Jump to 2nd register address if Ac less than or equal to 1st parameter register",
 		Parameters: []instruction.Parameter{
 			instruction.ParamLiteral,
 			instruction.ParamAddress,

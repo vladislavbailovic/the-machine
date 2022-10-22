@@ -25,7 +25,7 @@ func run(vm Machine) (int, error) {
 
 func packInstruction(kind instruction.Type, value uint16) []byte {
 	inst1 := value | (uint16(kind.AsByte()) << 10)
-	// fmt.Printf("val:%016b\nins:%016b\nbot:%016b\n", value, uint16(kind), inst1)
+	// fmt.Printf("val:%016b\nins:%016b (%d)\nbot:%016b\n", value, uint16(kind), uint16(kind), inst1)
 	return []byte{
 		byte(inst1),
 		byte(inst1 >> 8),
@@ -33,12 +33,12 @@ func packInstruction(kind instruction.Type, value uint16) []byte {
 }
 
 func packInstruction2(kind instruction.Type, value1 uint16, value2 uint16) []byte {
-	v1 := value1 << 12 & 0b1111_000000000000
-	v2 := value2 << 8 & 0b0000_1111_0000000
-	value := v1 | v2
+	v1 := value1 << 12
+	v2 := value2 << 8
+	value := (v1 | v2) >> 8
 	// fmt.Printf("v1: %016b (%d; from: %d %016b)\n", v1, v1, value1, value1)
 	// fmt.Printf("v2: %016b (%d; from: %d %016b)\n", v2, v2, value2, value2)
-	// // fmt.Printf("final: %016b (%d)\n", value, value)
+	// fmt.Printf("final:\n%016b (%d)\n", value, value)
 	return packInstruction(kind, value)
 }
 
@@ -50,6 +50,36 @@ func packProgram(instr ...[]byte) []byte {
 	halt := packInstruction(instruction.HALT, 0)
 	res = append(res, halt...)
 	return res
+}
+
+func Test_Pack2Regs(t *testing.T) {
+	values := []uint16{161, 13, 12, 255, 512, 1023}
+	registers := []register.Register{
+		register.R2,
+		register.R3,
+		register.R4,
+		register.R5,
+	}
+	for vid, value := range values {
+		for rid, destination := range registers {
+			vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+			program := packProgram(
+				packInstruction(instruction.MOV_LIT_R7, value),
+				packInstruction2(instruction.MOV_REG_REG, uint16(register.R7.AsByte()), uint16(destination.AsByte())),
+			)
+			vm.LoadProgram(0, program)
+			run(vm)
+			if vm.cpu.GetRegister(register.R7) != value {
+				vm.Debug()
+				t.Fatalf("%d::%d: Invalid value in source register", vid, rid)
+			}
+			if vm.cpu.GetRegister(destination) != value {
+				vm.Debug()
+				t.Fatalf("%d::%d: Invalid value in destination register %v: %d",
+					vid, rid, destination, vm.cpu.GetRegister(destination))
+			}
+		}
+	}
 }
 
 func Test_SingleUint16Instruction_All(t *testing.T) {
@@ -613,6 +643,245 @@ func Test_MovRegReg_Ac2General(t *testing.T) {
 	}
 	if vm.cpu.GetRegister(register.R2) != 161 {
 		vm.Debug()
-		t.Fatalf("error copyin Accumulator to R2: %d", vm.cpu.GetRegister(register.R2))
+		t.Fatalf("error copying Accumulator to R2: %d", vm.cpu.GetRegister(register.R2))
+	}
+}
+
+func Test_Jne(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R2, 13),
+		packInstruction(instruction.MOV_LIT_R3, 4), // Multiple of 2 because uint16 addresses
+		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
+		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.JNE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > (13*3)+3 {
+		vm.Debug()
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 13 {
+		vm.Debug()
+		t.Fatalf("error increasing by immediate value in register R1: %d", vm.cpu.GetRegister(register.R1))
+	}
+	if vm.cpu.GetRegister(register.R2) != 13 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for check in register R2: %d", vm.cpu.GetRegister(register.R2))
+	}
+	if vm.cpu.GetRegister(register.R3) != 4 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for address jump in register R3: %d", vm.cpu.GetRegister(register.R3))
+	}
+	if vm.cpu.GetRegister(register.Ac) != 13 {
+		vm.Debug()
+		t.Fatalf("error in Accumulator: %d", vm.cpu.GetRegister(register.Ac))
+	}
+}
+
+func Test_Jeq(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 11),
+		packInstruction(instruction.MOV_LIT_R2, 13),
+		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
+		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
+		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.JNE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step != 10 {
+		vm.Debug()
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 13 {
+		vm.Debug()
+		t.Fatalf("error increasing by immediate value in register R1: %d", vm.cpu.GetRegister(register.R1))
+	}
+	if vm.cpu.GetRegister(register.R2) != 13 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for check in register R2: %d", vm.cpu.GetRegister(register.R2))
+	}
+	if vm.cpu.GetRegister(register.R3) != 6 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for address jump in register R3: %d", vm.cpu.GetRegister(register.R3))
+	}
+	if vm.cpu.GetRegister(register.Ac) != 13 {
+		vm.Debug()
+		t.Fatalf("error in Accumulator: %d", vm.cpu.GetRegister(register.Ac))
+	}
+}
+
+func Test_Jgt(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 25),
+		packInstruction(instruction.MOV_LIT_R2, 13),
+		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
+		packInstruction2(instruction.SUB_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
+		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.JGT, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > (13*3)+3 {
+		vm.Debug()
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 13 {
+		vm.Debug()
+		t.Fatalf("error increasing by immediate value in register R1: %d", vm.cpu.GetRegister(register.R1))
+	}
+	if vm.cpu.GetRegister(register.R2) != 13 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for check in register R2: %d", vm.cpu.GetRegister(register.R2))
+	}
+	if vm.cpu.GetRegister(register.R3) != 6 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for address jump in register R3: %d", vm.cpu.GetRegister(register.R3))
+	}
+	if vm.cpu.GetRegister(register.Ac) != 13 {
+		vm.Debug()
+		t.Fatalf("error in Accumulator: %d", vm.cpu.GetRegister(register.Ac))
+	}
+}
+
+func Test_Jge(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 25),
+		packInstruction(instruction.MOV_LIT_R2, 13),
+		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
+		packInstruction2(instruction.SUB_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
+		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.JGE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > (13*3)+5 {
+		vm.Debug()
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 12 {
+		vm.Debug()
+		t.Fatalf("error increasing by immediate value in register R1: %d", vm.cpu.GetRegister(register.R1))
+	}
+	if vm.cpu.GetRegister(register.R2) != 13 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for check in register R2: %d", vm.cpu.GetRegister(register.R2))
+	}
+	if vm.cpu.GetRegister(register.R3) != 6 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for address jump in register R3: %d", vm.cpu.GetRegister(register.R3))
+	}
+	if vm.cpu.GetRegister(register.Ac) != 12 {
+		vm.Debug()
+		t.Fatalf("error in Accumulator: %d", vm.cpu.GetRegister(register.Ac))
+	}
+}
+
+func Test_Jlt(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 13),
+		packInstruction(instruction.MOV_LIT_R2, 25),
+		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
+		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
+		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.JLT, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > (13*3)+3 {
+		vm.Debug()
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 25 {
+		vm.Debug()
+		t.Fatalf("error increasing by immediate value in register R1: %d", vm.cpu.GetRegister(register.R1))
+	}
+	if vm.cpu.GetRegister(register.R2) != 25 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for check in register R2: %d", vm.cpu.GetRegister(register.R2))
+	}
+	if vm.cpu.GetRegister(register.R3) != 6 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for address jump in register R3: %d", vm.cpu.GetRegister(register.R3))
+	}
+	if vm.cpu.GetRegister(register.Ac) != 25 {
+		vm.Debug()
+		t.Fatalf("error in Accumulator: %d", vm.cpu.GetRegister(register.Ac))
+	}
+}
+
+func Test_Jle(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 13),
+		packInstruction(instruction.MOV_LIT_R2, 26),
+		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
+		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
+		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.JLE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > (13*3)+7 {
+		vm.Debug()
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 27 {
+		vm.Debug()
+		t.Fatalf("error increasing by immediate value in register R1: %d", vm.cpu.GetRegister(register.R1))
+	}
+	if vm.cpu.GetRegister(register.R2) != 26 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for check in register R2: %d", vm.cpu.GetRegister(register.R2))
+	}
+	if vm.cpu.GetRegister(register.R3) != 6 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value for address jump in register R3: %d", vm.cpu.GetRegister(register.R3))
+	}
+	if vm.cpu.GetRegister(register.Ac) != 27 {
+		vm.Debug()
+		t.Fatalf("error in Accumulator: %d", vm.cpu.GetRegister(register.Ac))
 	}
 }

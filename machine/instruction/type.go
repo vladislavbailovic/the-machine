@@ -10,6 +10,7 @@ const (
 	MOV_LIT_R2 Type = iota
 	MOV_LIT_R3 Type = iota
 	MOV_LIT_R4 Type = iota
+	MOV_LIT_R7 Type = iota
 
 	MOV_AC_REG  Type = iota
 	MOV_REG_REG Type = iota

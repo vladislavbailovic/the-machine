@@ -1,6 +1,7 @@
 package instruction
 
 import (
+	"encoding/binary"
 	"fmt"
 	"the-machine/machine/cpu"
 	"the-machine/machine/memory"
@@ -27,12 +28,22 @@ func (x Instruction) Execute(cpu *cpu.Cpu, memory *memory.Memory) error {
 
 // TODO: move param parsing to machine::decode
 func (x Instruction) getParams(cpu *cpu.Cpu, mem *memory.Memory) ([]byte, error) {
-	params := []byte{
-		byte(x.Raw & 0b0000_0000_1111_1111),
-		byte((x.Raw >> 8)),
-	}
-	// fmt.Printf("\nraw:%016b\none:%016b\ntwo:%016b\n----------\n", x.Raw, params[0], params[1])
-	return params, nil
+	/*
+			works for one arg
+			params := []byte{
+				byte(x.Raw & 0b0000_0000_1111_1111),
+				byte((x.Raw >> 8)),
+			}
+		fmt.Printf("\nraw:%016b\none:%016b\ntwo:%016b\n----------\n", x.Raw, params[0], params[1])
+	*/
+
+	b := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b, x.Raw)
+
+	// params := []byte{b1, b2}
+	// return params, nil
+	return b, nil
+
 	// length := 0
 	// for _, p := range x.Parameters {
 	// 	length += p.GetBytesLength()

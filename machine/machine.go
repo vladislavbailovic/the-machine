@@ -89,7 +89,7 @@ func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 		return Instructions[instruction.NOP], fmt.Errorf("unknown instruction: %#02x", instr)
 	}
 	decoded.Raw = instr & 0b0000_0011_1111_1111
-	// fmt.Printf("cmd: %v (%d)\npass:\n%016b\n%016b\n", decoded, instructionType, instr, decoded.Raw)
+	// fmt.Printf("cmd: %v (%d)\npass:\n%016b\n%016b\n", decoded.Description, instructionType, instr, decoded.Raw)
 	return decoded, nil
 }
 

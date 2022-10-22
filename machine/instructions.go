@@ -45,6 +45,16 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.Lit2Reg{Target: register.R4},
 	},
+	instruction.MOV_REG_REG: {
+		Description: "Copy value from register to register",
+		Parameters:  []instruction.Parameter{},
+		Executor:    instruction.Reg2Reg{},
+	},
+	instruction.MOV_AC_REG: {
+		Description: "Copy value from register to register",
+		Parameters:  []instruction.Parameter{},
+		Executor:    instruction.Ac2Reg{},
+	},
 	instruction.ADD_REG_REG: {
 		Description: "Add contents of two registers",
 		Parameters: []instruction.Parameter{

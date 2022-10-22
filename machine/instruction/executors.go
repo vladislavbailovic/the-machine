@@ -31,6 +31,38 @@ func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error 
 	return nil
 }
 
+type Reg2Reg struct{}
+
+func (x Reg2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
+	source, err := register.FromByte(params[0])
+	if err != nil {
+		return fmt.Errorf("REG2REG: invalid source register (%#02x): %v", params[0], err)
+	}
+	value := cpu.GetRegister(source)
+
+	destination, err := register.FromByte(params[1])
+	if err != nil {
+		return fmt.Errorf("REG2REG: invalid destination register (%#02x): %v", params[1], err)
+	}
+
+	cpu.SetRegister(destination, value)
+	return nil
+}
+
+type Ac2Reg struct{}
+
+func (x Ac2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
+	value := cpu.GetRegister(register.Ac)
+
+	destination, err := register.FromByte(params[0])
+	if err != nil {
+		return fmt.Errorf("AC2REG: invalid destination register (%#02x): %v", params[0], err)
+	}
+
+	cpu.SetRegister(destination, value)
+	return nil
+}
+
 type Reg2Mem struct{}
 
 func (x Reg2Mem) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {

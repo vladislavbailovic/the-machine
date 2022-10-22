@@ -35,9 +35,10 @@ func packInstruction(kind instruction.Type, value uint16) []byte {
 func packInstruction2(kind instruction.Type, value1 uint16, value2 uint16) []byte {
 	v1 := value1 << 12 & 0b1111_000000000000
 	v2 := value2 << 8 & 0b0000_1111_0000000
-	// fmt.Printf("v1: %016b\n", v1)
-	// fmt.Printf("v2: %016b\n", v2)
 	value := v1 | v2
+	// fmt.Printf("v1: %016b (%d; from: %d %016b)\n", v1, v1, value1, value1)
+	// fmt.Printf("v2: %016b (%d; from: %d %016b)\n", v2, v2, value2, value2)
+	// // fmt.Printf("final: %016b (%d)\n", value, value)
 	return packInstruction(kind, value)
 }
 
@@ -95,6 +96,7 @@ func Test_AddRegReg_One(t *testing.T) {
 	}
 
 	if step, err := run(vm); err != nil || step > 4 {
+		vm.Debug()
 		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
 	}
 
@@ -558,5 +560,59 @@ func Test_MovLitMem(t *testing.T) {
 	if res != 161 {
 		vm.Debug()
 		t.Fatalf("error setting memory at 1312: expected 161, got: %d", res)
+	}
+}
+
+func Test_MovRegReg_GeneralPurpose(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 161),
+		packInstruction2(instruction.MOV_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if step, err := run(vm); err != nil || step > 3 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 161 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if vm.cpu.GetRegister(register.R2) != 161 {
+		vm.Debug()
+		t.Fatalf("error copying R1 value to R2: %d", vm.cpu.GetRegister(register.R2))
+	}
+}
+
+func Test_MovRegReg_Ac2General(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 160),
+		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
+		packInstruction(instruction.MOV_AC_REG, uint16(register.R2.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > 4 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 160 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R1: %d", vm.cpu.GetRegister(register.R1))
+	}
+	if vm.cpu.GetRegister(register.Ac) != 161 {
+		vm.Debug()
+		t.Fatalf("error in Accumulator: %d", vm.cpu.GetRegister(register.Ac))
+	}
+	if vm.cpu.GetRegister(register.R2) != 161 {
+		vm.Debug()
+		t.Fatalf("error copyin Accumulator to R2: %d", vm.cpu.GetRegister(register.R2))
 	}
 }

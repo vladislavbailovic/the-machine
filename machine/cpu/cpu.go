@@ -19,7 +19,7 @@ type Cpu struct {
 }
 
 func NewCpu() *Cpu {
-	registers := make(map[register.Register]uint16, 6)
+	registers := make(map[register.Register]uint16, 8)
 	registers[register.R1] = 0
 	registers[register.R2] = 0
 	registers[register.R3] = 0

@@ -74,7 +74,7 @@ func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 	vm.cycle = Decode
 
 	instrType := byte(
-		(instr >> 10) & 0b0000_0000_0011_1111,
+		((instr >> 10) & 0b0000_0000_0011_1111),
 	)
 	instructionType := instruction.Type(instrType)
 	// fmt.Printf("\ngot:%016b\nins:%016b\nmeaning: %d\n", instr, instrType, instructionType)

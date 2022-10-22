@@ -44,6 +44,25 @@ func (x Type) AsByte() byte {
 	return byte(x)
 }
 
+func (x Type) Pack(raw ...uint16) []byte {
+	var value uint16
+	switch len(raw) {
+	case 1:
+		value = raw[0]
+	case 2:
+		v1 := raw[0] << 12
+		v2 := raw[1] << 8
+		value = (v1 | v2) >> 8
+	default:
+		panic("can't pack more than 2 bytes worth of data atm")
+	}
+	instr := value | (uint16(x.AsByte()) << 10)
+	return []byte{
+		byte(instr),
+		byte(instr >> 8),
+	}
+}
+
 type Op byte
 
 const (

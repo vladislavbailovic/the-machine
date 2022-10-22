@@ -23,31 +23,12 @@ func run(vm Machine) (int, error) {
 	return step, nil
 }
 
-func packInstruction(kind instruction.Type, value uint16) []byte {
-	inst1 := value | (uint16(kind.AsByte()) << 10)
-	// fmt.Printf("val:%016b\nins:%016b (%d)\nbot:%016b\n", value, uint16(kind), uint16(kind), inst1)
-	return []byte{
-		byte(inst1),
-		byte(inst1 >> 8),
-	}
-}
-
-func packInstruction2(kind instruction.Type, value1 uint16, value2 uint16) []byte {
-	v1 := value1 << 12
-	v2 := value2 << 8
-	value := (v1 | v2) >> 8
-	// fmt.Printf("v1: %016b (%d; from: %d %016b)\n", v1, v1, value1, value1)
-	// fmt.Printf("v2: %016b (%d; from: %d %016b)\n", v2, v2, value2, value2)
-	// fmt.Printf("final:\n%016b (%d)\n", value, value)
-	return packInstruction(kind, value)
-}
-
 func packProgram(instr ...[]byte) []byte {
 	res := make([]byte, 0, len(instr)+2)
 	for _, b := range instr {
 		res = append(res, b...)
 	}
-	halt := packInstruction(instruction.HALT, 0)
+	halt := instruction.HALT.Pack(0)
 	res = append(res, halt...)
 	return res
 }
@@ -64,8 +45,8 @@ func Test_Pack2Regs(t *testing.T) {
 		for rid, destination := range registers {
 			vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 			program := packProgram(
-				packInstruction(instruction.MOV_LIT_R7, value),
-				packInstruction2(instruction.MOV_REG_REG, uint16(register.R7.AsByte()), uint16(destination.AsByte())),
+				instruction.MOV_LIT_R7.Pack(value),
+				instruction.MOV_REG_REG.Pack(uint16(register.R7.AsByte()), uint16(destination.AsByte())),
 			)
 			vm.LoadProgram(0, program)
 			run(vm)
@@ -96,7 +77,7 @@ func Test_SingleUint16Instruction_All(t *testing.T) {
 		for reg, instr := range registers {
 			// fmt.Printf("--- %d::%d: %d into %v ---\n", idx, regIdx, value, reg)
 			vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
-			program := packInstruction(instr, value)
+			program := instr.Pack(value)
 			vm.LoadProgram(0, packProgram(program))
 			if step, err := run(vm); err != nil || step > 2 {
 				t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
@@ -114,9 +95,9 @@ func Test_SingleUint16Instruction_All(t *testing.T) {
 func Test_AddRegReg_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 13),
-		packInstruction(instruction.MOV_LIT_R2, 12),
-		packInstruction2(instruction.ADD_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_R1.Pack(13),
+		instruction.MOV_LIT_R2.Pack(12),
+		instruction.ADD_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -147,8 +128,8 @@ func Test_AddRegReg_One(t *testing.T) {
 func Test_AddRegLit_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 13),
-		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
+		instruction.MOV_LIT_R1.Pack(13),
+		instruction.ADD_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
 	)
 	vm.LoadProgram(0, program)
 
@@ -174,9 +155,9 @@ func Test_AddRegLit_One(t *testing.T) {
 func Test_SubRegReg_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 13),
-		packInstruction(instruction.MOV_LIT_R2, 12),
-		packInstruction2(instruction.SUB_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_R1.Pack(13),
+		instruction.MOV_LIT_R2.Pack(12),
+		instruction.SUB_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -206,8 +187,8 @@ func Test_SubRegReg_One(t *testing.T) {
 func Test_SubRegLit_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 13),
-		packInstruction2(instruction.SUB_REG_LIT, uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
+		instruction.MOV_LIT_R1.Pack(13),
+		instruction.SUB_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
 	)
 	vm.LoadProgram(0, program)
 
@@ -233,9 +214,9 @@ func Test_SubRegLit_One(t *testing.T) {
 func Test_MulRegReg_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 13),
-		packInstruction(instruction.MOV_LIT_R2, 12),
-		packInstruction2(instruction.MUL_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_R1.Pack(13),
+		instruction.MOV_LIT_R2.Pack(12),
+		instruction.MUL_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -265,8 +246,8 @@ func Test_MulRegReg_One(t *testing.T) {
 func Test_MulRegLit_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 13),
-		packInstruction2(instruction.MUL_REG_LIT, uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
+		instruction.MOV_LIT_R1.Pack(13),
+		instruction.MUL_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
 	)
 	vm.LoadProgram(0, program)
 
@@ -293,9 +274,9 @@ func Test_MulRegReg_Overflow(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	var val uint16 = 257
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, val),
-		packInstruction(instruction.MOV_LIT_R2, val),
-		packInstruction2(instruction.MUL_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_R1.Pack(val),
+		instruction.MOV_LIT_R2.Pack(val),
+		instruction.MUL_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -328,9 +309,9 @@ func Test_MulRegReg_Overflow(t *testing.T) {
 func Test_DivRegReg_Straight(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 120),
-		packInstruction(instruction.MOV_LIT_R2, 12),
-		packInstruction2(instruction.DIV_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_R1.Pack(120),
+		instruction.MOV_LIT_R2.Pack(12),
+		instruction.DIV_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -360,8 +341,8 @@ func Test_DivRegReg_Straight(t *testing.T) {
 func Test_DivRegLit_Straight(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 39),
-		packInstruction2(instruction.DIV_REG_LIT, uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
+		instruction.MOV_LIT_R1.Pack(39),
+		instruction.DIV_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
 	)
 	vm.LoadProgram(0, program)
 
@@ -387,9 +368,9 @@ func Test_DivRegLit_Straight(t *testing.T) {
 func Test_DivRegReg_Round(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 128),
-		packInstruction(instruction.MOV_LIT_R2, 12),
-		packInstruction2(instruction.DIV_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_R1.Pack(128),
+		instruction.MOV_LIT_R2.Pack(12),
+		instruction.DIV_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -419,8 +400,8 @@ func Test_DivRegReg_Round(t *testing.T) {
 func Test_DivRegLit_Round(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 40),
-		packInstruction2(instruction.DIV_REG_LIT, uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
+		instruction.MOV_LIT_R1.Pack(40),
+		instruction.DIV_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
 	)
 	vm.LoadProgram(0, program)
 
@@ -446,9 +427,9 @@ func Test_DivRegLit_Round(t *testing.T) {
 func Test_ModRegReg_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 13),
-		packInstruction(instruction.MOV_LIT_R2, 12),
-		packInstruction2(instruction.MOD_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_R1.Pack(13),
+		instruction.MOV_LIT_R2.Pack(12),
+		instruction.MOD_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -478,8 +459,8 @@ func Test_ModRegReg_One(t *testing.T) {
 func Test_ModRegLit_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 40),
-		packInstruction2(instruction.MOD_REG_LIT, uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
+		instruction.MOV_LIT_R1.Pack(40),
+		instruction.MOD_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
 	)
 	vm.LoadProgram(0, program)
 
@@ -505,11 +486,11 @@ func Test_ModRegLit_One(t *testing.T) {
 func Test_MovRegMem(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(2048)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 1023),
-		packInstruction(instruction.MOV_LIT_R2, 289),
-		packInstruction2(instruction.ADD_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
-		packInstruction(instruction.MOV_LIT_R3, 161),
-		packInstruction(instruction.MOV_REG_MEM, uint16(register.R3.AsByte())),
+		instruction.MOV_LIT_R1.Pack(1023),
+		instruction.MOV_LIT_R2.Pack(289),
+		instruction.ADD_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_R3.Pack(161),
+		instruction.MOV_REG_MEM.Pack(uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -553,10 +534,10 @@ func Test_MovRegMem(t *testing.T) {
 func Test_MovLitMem(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(2048)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 1023),
-		packInstruction(instruction.MOV_LIT_R2, 289),
-		packInstruction2(instruction.ADD_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
-		packInstruction(instruction.MOV_LIT_MEM, uint16(161)),
+		instruction.MOV_LIT_R1.Pack(1023),
+		instruction.MOV_LIT_R2.Pack(289),
+		instruction.ADD_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_MEM.Pack(uint16(161)),
 	)
 	vm.LoadProgram(0, program)
 
@@ -596,8 +577,8 @@ func Test_MovLitMem(t *testing.T) {
 func Test_MovRegReg_GeneralPurpose(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 161),
-		packInstruction2(instruction.MOV_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_R1.Pack(161),
+		instruction.MOV_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -618,9 +599,9 @@ func Test_MovRegReg_GeneralPurpose(t *testing.T) {
 func Test_MovRegReg_Ac2General(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 160),
-		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R2.AsByte())),
+		instruction.MOV_LIT_R1.Pack(160),
+		instruction.ADD_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(1)),
+		instruction.MOV_REG_REG.Pack(uint16(register.Ac.AsByte()), uint16(register.R2.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -650,11 +631,11 @@ func Test_MovRegReg_Ac2General(t *testing.T) {
 func Test_Jne(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R2, 13),
-		packInstruction(instruction.MOV_LIT_R3, 4), // Multiple of 2 because uint16 addresses
-		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
-		packInstruction2(instruction.JNE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+		instruction.MOV_LIT_R2.Pack(13),
+		instruction.MOV_LIT_R3.Pack(4), // Multiple of 2 because uint16 addresses
+		instruction.ADD_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(1)),
+		instruction.MOV_REG_REG.Pack(uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
+		instruction.JNE.Pack(uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -689,12 +670,12 @@ func Test_Jne(t *testing.T) {
 func Test_Jeq(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 11),
-		packInstruction(instruction.MOV_LIT_R2, 13),
-		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
-		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
-		packInstruction2(instruction.JNE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+		instruction.MOV_LIT_R1.Pack(11),
+		instruction.MOV_LIT_R2.Pack(13),
+		instruction.MOV_LIT_R3.Pack(6), // Multiple of 2 because uint16 addresses
+		instruction.ADD_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(1)),
+		instruction.MOV_REG_REG.Pack(uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
+		instruction.JNE.Pack(uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -729,12 +710,12 @@ func Test_Jeq(t *testing.T) {
 func Test_Jgt(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 25),
-		packInstruction(instruction.MOV_LIT_R2, 13),
-		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
-		packInstruction2(instruction.SUB_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
-		packInstruction2(instruction.JGT, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+		instruction.MOV_LIT_R1.Pack(25),
+		instruction.MOV_LIT_R2.Pack(13),
+		instruction.MOV_LIT_R3.Pack(6), // Multiple of 2 because uint16 addresses
+		instruction.SUB_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(1)),
+		instruction.MOV_REG_REG.Pack(uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
+		instruction.JGT.Pack(uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -769,12 +750,12 @@ func Test_Jgt(t *testing.T) {
 func Test_Jge(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 25),
-		packInstruction(instruction.MOV_LIT_R2, 13),
-		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
-		packInstruction2(instruction.SUB_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
-		packInstruction2(instruction.JGE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+		instruction.MOV_LIT_R1.Pack(25),
+		instruction.MOV_LIT_R2.Pack(13),
+		instruction.MOV_LIT_R3.Pack(6), // Multiple of 2 because uint16 addresses
+		instruction.SUB_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(1)),
+		instruction.MOV_REG_REG.Pack(uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
+		instruction.JGE.Pack(uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -809,12 +790,12 @@ func Test_Jge(t *testing.T) {
 func Test_Jlt(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 13),
-		packInstruction(instruction.MOV_LIT_R2, 25),
-		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
-		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
-		packInstruction2(instruction.JLT, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+		instruction.MOV_LIT_R1.Pack(13),
+		instruction.MOV_LIT_R2.Pack(25),
+		instruction.MOV_LIT_R3.Pack(6), // Multiple of 2 because uint16 addresses
+		instruction.ADD_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(1)),
+		instruction.MOV_REG_REG.Pack(uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
+		instruction.JLT.Pack(uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -849,12 +830,12 @@ func Test_Jlt(t *testing.T) {
 func Test_Jle(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
-		packInstruction(instruction.MOV_LIT_R1, 13),
-		packInstruction(instruction.MOV_LIT_R2, 26),
-		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
-		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
-		packInstruction2(instruction.JLE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
+		instruction.MOV_LIT_R1.Pack(13),
+		instruction.MOV_LIT_R2.Pack(26),
+		instruction.MOV_LIT_R3.Pack(6), // Multiple of 2 because uint16 addresses
+		instruction.ADD_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(1)),
+		instruction.MOV_REG_REG.Pack(uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
+		instruction.JLE.Pack(uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 

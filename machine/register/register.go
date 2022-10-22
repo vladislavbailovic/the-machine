@@ -23,12 +23,12 @@ var Ac = Register{
 
 var Sp = Register{
 	name: "Stack Pointer",
-	pos:  0xa3,
+	pos:  0xa4,
 }
 
 var Fp = Register{
 	name: "Frame Pointer",
-	pos:  0xa4,
+	pos:  0xa5,
 }
 
 var R1 = Register{

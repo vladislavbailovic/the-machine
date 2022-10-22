@@ -470,107 +470,93 @@ func Test_ModRegLit_One(t *testing.T) {
 	}
 }
 
-/*
-func Test_Execute_Program(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
-	b1 := make([]byte, 2)
-	binary.LittleEndian.PutUint16(b1, uint16(1312))
-	b2 := make([]byte, 2)
-	binary.LittleEndian.PutUint16(b2, uint16(161))
-	vm.LoadProgram(0, []byte{
-		instruction.MOV_LIT_R1.AsByte(), b1[0], b1[1],
-		instruction.MOV_LIT_R2.AsByte(), b2[0], b2[1],
-		instruction.ADD_REG_REG.AsByte(), register.R1.AsByte(), register.R2.AsByte(),
-	})
+func Test_MovRegMem(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(2048)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 1023),
+		packInstruction(instruction.MOV_LIT_R2, 289),
+		packInstruction2(instruction.ADD_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		packInstruction(instruction.MOV_LIT_R3, 161),
+		packInstruction(instruction.MOV_REG_MEM, uint16(register.R3.AsByte())),
+	)
+	vm.LoadProgram(0, program)
 
-	step := 0
-	for step < 20 {
-		if err := vm.Tick(); err != nil {
-			t.Fatalf("error at tick %d: %v", step, err)
-		}
-		step++
-		if vm.IsDone() {
-			break
-		}
-	}
-	vm.Debug()
-	if val := vm.cpu.GetRegister(register.Ac); val != 1312+161 {
-		t.Fatalf("expected %d in Ac, got %#02x (%d) instead", 1312+161, val, val)
-	}
-	if 20 != step {
-		t.Fatalf("expected nohalt program to run to external limit, break after %d", step)
-	}
-}
-
-func Test_Execute_Loop(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
-	vm.LoadProgram(0, []byte{
-		instruction.MOV_LIT_AC.AsByte(), 0x01, 0x00,
-		instruction.MOV_LIT_R1.AsByte(), 0x01, 0x00,
-		instruction.ADD_REG_REG.AsByte(), register.Ac.AsByte(), register.R1.AsByte(),
-		instruction.JNE.AsByte(), 0x03, 0x00, 0x06, 0x00,
-		instruction.MOV_LIT_R2.AsByte(), 0xab, 0xac,
-		instruction.HALT.AsByte(),
-	})
-
-	step := 0
-	for step < 20 {
+	if vm.cpu.GetRegister(register.Ac) != 0 {
 		vm.Debug()
-		if err := vm.Tick(); err != nil {
-			t.Fatalf("error at tick %d: %v", step, err)
-		}
-		step++
-		if vm.IsDone() {
-			break
-		}
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
 	}
 
-	if val := vm.cpu.GetRegister(register.R2); val != 0xacab {
-		t.Fatalf("expected %#02x in R2, got %#02x instead", 0xacab, val)
+	if step, err := run(vm); err != nil || step > 6 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
 	}
-	if val := vm.cpu.GetRegister(register.Ac); val != 3 {
-		t.Fatalf("expected 3 in Ac, got %#02x instead", val)
-	}
-	if step != 8 {
-		t.Fatalf("expected exactly %d steps but got %d", 8, step)
-	}
-}
 
-func Test_CopyToMemory(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
-	address := make([]byte, 2)
-	binary.LittleEndian.PutUint16(address, uint16(161))
-	vm.LoadProgram(0, []byte{
-		instruction.MOV_LIT_R1.AsByte(), 0x12, 0x00,
-		instruction.MOV_REG_MEM.AsByte(), register.R1.AsByte(), 0x13, 0x00,
-		instruction.MOV_LIT_MEM.AsByte(), 0xab, 0xac, address[0], address[1],
-		instruction.HALT.AsByte(),
-	})
-
-	step := 0
-	for step < 20 {
+	if vm.cpu.GetRegister(register.R1) != 1023 {
 		vm.Debug()
-		if err := vm.Tick(); err != nil {
-			t.Fatalf("error at tick %d: %v", step, err)
-		}
-		step++
-		if vm.IsDone() {
-			break
-		}
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if vm.cpu.GetRegister(register.R2) != 289 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R2")
+	}
+	if vm.cpu.GetRegister(register.R3) != 161 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R3")
+	}
+	if vm.cpu.GetRegister(register.Ac) != 1312 {
+		vm.Debug()
+		t.Fatalf("error setting memory address in accumulator")
 	}
 
-	if val, err := vm.memory.GetUint16(memory.Address(0x13)); err != nil || val != 0x12 {
-		t.Fatalf("expected %#02x (%d) at address %#02x (%d), got %#02x (%d), err %v",
-			0x12, 0x12, 0x13, 0x13, val, val, err)
+	res, err := vm.memory.GetUint16(1312)
+	if err != nil {
+		vm.Debug()
+		t.Fatalf("error setting memory at 1312: %v", err)
 	}
-
-	if val, err := vm.memory.GetUint16(memory.Address(161)); err != nil || val != 0xacab {
-		t.Fatalf("expected %#02x (%d) at address %#02x (%d), got %#02x (%d), err %v",
-			0xacab, 0xacab, 161, 161, val, val, err)
-	}
-
-	if step != 4 {
-		t.Fatalf("expected exactly %d steps but got %d", 4, step)
+	if res != 161 {
+		vm.Debug()
+		t.Fatalf("error setting memory at 1312: expected 161, got: %d", res)
 	}
 }
-*/
+
+func Test_MovLitMem(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(2048)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 1023),
+		packInstruction(instruction.MOV_LIT_R2, 289),
+		packInstruction2(instruction.ADD_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+		packInstruction(instruction.MOV_LIT_MEM, uint16(161)),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > 6 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 1023 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if vm.cpu.GetRegister(register.R2) != 289 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R2")
+	}
+	if vm.cpu.GetRegister(register.Ac) != 1312 {
+		vm.Debug()
+		t.Fatalf("error setting memory address in accumulator")
+	}
+
+	res, err := vm.memory.GetUint16(1312)
+	if err != nil {
+		vm.Debug()
+		t.Fatalf("error setting memory at 1312: %v", err)
+	}
+	if res != 161 {
+		vm.Debug()
+		t.Fatalf("error setting memory at 1312: expected 161, got: %d", res)
+	}
+}

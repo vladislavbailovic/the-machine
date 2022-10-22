@@ -45,22 +45,6 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.Lit2Reg{Target: register.R4},
 	},
-	instruction.MOV_REG_MEM: {
-		Description: "Copy content of register to memory address",
-		Parameters: []instruction.Parameter{
-			instruction.ParamRegister,
-			instruction.ParamAddress,
-		},
-		Executor: instruction.Reg2Mem{},
-	},
-	instruction.MOV_LIT_MEM: {
-		Description: "Move literal value to memory address",
-		Parameters: []instruction.Parameter{
-			instruction.ParamLiteral,
-			instruction.ParamAddress,
-		},
-		Executor: instruction.Lit2Mem{},
-	},
 	instruction.ADD_REG_REG: {
 		Description: "Add contents of two registers",
 		Parameters: []instruction.Parameter{
@@ -141,6 +125,23 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		},
 		Executor: instruction.OperateRegLit{Operation: instruction.OpMod},
 	},
+	instruction.MOV_REG_MEM: {
+		Description: "Copy content of register to address in accumulator",
+		Parameters: []instruction.Parameter{
+			instruction.ParamRegister,
+			instruction.ParamAddress,
+		},
+		Executor: instruction.Reg2Mem{},
+	},
+	instruction.MOV_LIT_MEM: {
+		Description: "Move literal value to memory address in accumulator",
+		Parameters: []instruction.Parameter{
+			instruction.ParamLiteral,
+			instruction.ParamAddress,
+		},
+		Executor: instruction.Lit2Mem{},
+	},
+
 	instruction.JEQ: {
 		Description: "Jump to if Ac equal to literal",
 		Parameters: []instruction.Parameter{

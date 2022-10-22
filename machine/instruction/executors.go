@@ -34,26 +34,21 @@ func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error 
 type Reg2Mem struct{}
 
 func (x Reg2Mem) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
-	if len(params) != 3 {
-		return fmt.Errorf("REG2MEM: invalid parameter: %v", params)
-	}
 	r1, err := register.FromByte(params[0])
 	if err != nil {
 		return fmt.Errorf("REG2MEM: invalid register (%#02x): %v", params[0], err)
 	}
 	value := cpu.GetRegister(r1)
-	address := memory.Address(binary.LittleEndian.Uint16(params[1:]))
+
+	address := memory.Address(cpu.GetRegister(register.Ac))
 	return mem.SetUint16(address, value)
 }
 
 type Lit2Mem struct{}
 
 func (x Lit2Mem) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
-	if len(params) != 4 {
-		return fmt.Errorf("LIT2MEM: invalid parameter: %v", params)
-	}
-	value := binary.LittleEndian.Uint16(params[:2])
-	address := memory.Address(binary.LittleEndian.Uint16(params[2:]))
+	value := binary.LittleEndian.Uint16(params)
+	address := memory.Address(cpu.GetRegister(register.Ac))
 	return mem.SetUint16(address, value)
 }
 

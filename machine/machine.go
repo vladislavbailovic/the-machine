@@ -78,7 +78,6 @@ func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 	)
 	instructionType := instruction.Type(instrType)
 	// fmt.Printf("\ngot:%016b\nins:%016b\nmeaning: %d\n", instr, instrType, instructionType)
-	fmt.Printf("\ngot:%016b\nins:%016b\nmeaning: %d\nend:%016b\ndec:%d\n", instr, instrType, instructionType, instruction.END, instruction.END)
 	if instructionType == instruction.END || instructionType == instruction.HALT {
 		vm.status = Done
 		return Instructions[instruction.NOP], nil
@@ -90,7 +89,7 @@ func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 		return Instructions[instruction.NOP], fmt.Errorf("unknown instruction: %#02x", instr)
 	}
 	decoded.Raw = instr & 0b0000_0011_1111_1111
-	fmt.Printf("cmd: %v (%d)\npass:\n%016b\n%016b\n", decoded, instructionType, instr, decoded.Raw)
+	// fmt.Printf("cmd: %v (%d)\npass:\n%016b\n%016b\n", decoded, instructionType, instr, decoded.Raw)
 	return decoded, nil
 }
 

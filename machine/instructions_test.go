@@ -33,6 +33,15 @@ func packInstruction(kind instruction.Type, value uint16) []byte {
 	}
 }
 
+func packInstruction2(kind instruction.Type, value1 uint16, value2 uint16) []byte {
+	v1 := value1 << 12 & 0b1111_000000000000
+	v2 := value2 << 8 & 0b0000_1111_0000000
+	// fmt.Printf("v1: %016b\n", v1)
+	// fmt.Printf("v2: %016b\n", v2)
+	value := v1 | v2
+	return packInstruction(kind, value)
+}
+
 func packProgram(instr ...[]byte) []byte {
 	res := make([]byte, 0, len(instr)+2)
 	for _, b := range instr {
@@ -70,7 +79,38 @@ func Test_SingleUint16Instruction_All(t *testing.T) {
 			regIdx++
 		}
 	}
+}
 
+func Test_AddRegReg_One(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 13),
+		packInstruction(instruction.MOV_LIT_R2, 12),
+		packInstruction2(instruction.ADD_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > 4 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 13 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if vm.cpu.GetRegister(register.R2) != 12 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R2")
+	}
+	if vm.cpu.GetRegister(register.Ac) != 25 {
+		vm.Debug()
+		t.Fatalf("error adding R1 and R2: expected 25, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
 }
 
 /*

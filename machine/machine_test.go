@@ -33,7 +33,7 @@ func packProgram(instr ...[]byte) []byte {
 	return res
 }
 
-func Test_Pack2Regs(t *testing.T) {
+func Test_Machine_Pack2Regs(t *testing.T) {
 	values := []uint16{161, 13, 12, 255, 512, 1023}
 	registers := []register.Register{
 		register.R2,
@@ -63,7 +63,7 @@ func Test_Pack2Regs(t *testing.T) {
 	}
 }
 
-func Test_SingleUint16Instruction_All(t *testing.T) {
+func Test_Machine_SingleUint16Instruction_All(t *testing.T) {
 	values := []uint16{161, 13, 12, 255, 512, 1023}
 	registers := map[register.Register]instruction.Type{
 		register.R1: instruction.MOV_LIT_R1,
@@ -92,7 +92,7 @@ func Test_SingleUint16Instruction_All(t *testing.T) {
 	}
 }
 
-func Test_AddRegReg_One(t *testing.T) {
+func Test_Machine_AddRegReg_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
@@ -125,7 +125,7 @@ func Test_AddRegReg_One(t *testing.T) {
 	}
 }
 
-func Test_AddRegLit_One(t *testing.T) {
+func Test_Machine_AddRegLit_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
@@ -152,7 +152,7 @@ func Test_AddRegLit_One(t *testing.T) {
 	}
 }
 
-func Test_SubRegReg_One(t *testing.T) {
+func Test_Machine_SubRegReg_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
@@ -184,7 +184,7 @@ func Test_SubRegReg_One(t *testing.T) {
 	}
 }
 
-func Test_SubRegLit_One(t *testing.T) {
+func Test_Machine_SubRegLit_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
@@ -211,7 +211,7 @@ func Test_SubRegLit_One(t *testing.T) {
 	}
 }
 
-func Test_MulRegReg_One(t *testing.T) {
+func Test_Machine_MulRegReg_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
@@ -243,7 +243,7 @@ func Test_MulRegReg_One(t *testing.T) {
 	}
 }
 
-func Test_MulRegLit_One(t *testing.T) {
+func Test_Machine_MulRegLit_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
@@ -270,7 +270,7 @@ func Test_MulRegLit_One(t *testing.T) {
 	}
 }
 
-func Test_MulRegReg_Overflow(t *testing.T) {
+func Test_Machine_MulRegReg_Overflow(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	var val uint16 = 257
 	program := packProgram(
@@ -306,7 +306,7 @@ func Test_MulRegReg_Overflow(t *testing.T) {
 	}
 }
 
-func Test_DivRegReg_Straight(t *testing.T) {
+func Test_Machine_DivRegReg_Straight(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(120),
@@ -338,7 +338,7 @@ func Test_DivRegReg_Straight(t *testing.T) {
 	}
 }
 
-func Test_DivRegLit_Straight(t *testing.T) {
+func Test_Machine_DivRegLit_Straight(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(39),
@@ -365,7 +365,7 @@ func Test_DivRegLit_Straight(t *testing.T) {
 	}
 }
 
-func Test_DivRegReg_Round(t *testing.T) {
+func Test_Machine_DivRegReg_Round(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(128),
@@ -397,7 +397,7 @@ func Test_DivRegReg_Round(t *testing.T) {
 	}
 }
 
-func Test_DivRegLit_Round(t *testing.T) {
+func Test_Machine_DivRegLit_Round(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(40),
@@ -424,7 +424,7 @@ func Test_DivRegLit_Round(t *testing.T) {
 	}
 }
 
-func Test_ModRegReg_One(t *testing.T) {
+func Test_Machine_ModRegReg_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
@@ -456,7 +456,7 @@ func Test_ModRegReg_One(t *testing.T) {
 	}
 }
 
-func Test_ModRegLit_One(t *testing.T) {
+func Test_Machine_ModRegLit_One(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(40),
@@ -483,7 +483,7 @@ func Test_ModRegLit_One(t *testing.T) {
 	}
 }
 
-func Test_MovRegMem(t *testing.T) {
+func Test_Machine_MovRegMem(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(2048)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(1023),
@@ -531,7 +531,7 @@ func Test_MovRegMem(t *testing.T) {
 	}
 }
 
-func Test_MovLitMem(t *testing.T) {
+func Test_Machine_MovLitMem(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(2048)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(1023),
@@ -574,7 +574,7 @@ func Test_MovLitMem(t *testing.T) {
 	}
 }
 
-func Test_MovRegReg_GeneralPurpose(t *testing.T) {
+func Test_Machine_MovRegReg_GeneralPurpose(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(161),
@@ -596,7 +596,7 @@ func Test_MovRegReg_GeneralPurpose(t *testing.T) {
 	}
 }
 
-func Test_MovRegReg_Ac2General(t *testing.T) {
+func Test_Machine_MovRegReg_Ac2General(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(160),
@@ -628,7 +628,7 @@ func Test_MovRegReg_Ac2General(t *testing.T) {
 	}
 }
 
-func Test_Jne(t *testing.T) {
+func Test_Machine_Jne(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R2.Pack(13),
@@ -667,7 +667,7 @@ func Test_Jne(t *testing.T) {
 	}
 }
 
-func Test_Jeq(t *testing.T) {
+func Test_Machine_Jeq(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(11),
@@ -707,7 +707,7 @@ func Test_Jeq(t *testing.T) {
 	}
 }
 
-func Test_Jgt(t *testing.T) {
+func Test_Machine_Jgt(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(25),
@@ -747,7 +747,7 @@ func Test_Jgt(t *testing.T) {
 	}
 }
 
-func Test_Jge(t *testing.T) {
+func Test_Machine_Jge(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(25),
@@ -787,7 +787,7 @@ func Test_Jge(t *testing.T) {
 	}
 }
 
-func Test_Jlt(t *testing.T) {
+func Test_Machine_Jlt(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
@@ -827,7 +827,7 @@ func Test_Jlt(t *testing.T) {
 	}
 }
 
-func Test_Jle(t *testing.T) {
+func Test_Machine_Jle(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),

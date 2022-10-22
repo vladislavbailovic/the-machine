@@ -1,17 +1,15 @@
 package instruction
 
 import (
-	"encoding/binary"
 	"fmt"
 	"the-machine/machine/cpu"
 	"the-machine/machine/memory"
 	"the-machine/machine/register"
 )
 
-// TODO: move this somewhere
-func unpack2(params []byte) []byte {
-	raw := binary.LittleEndian.Uint16(params)
+type Unpacker struct{}
 
+func (x Unpacker) unpack(raw uint16) []byte {
 	b1 := byte(
 		(raw & 0b0000_0000_1111_0000) >> 4,
 	)
@@ -26,12 +24,12 @@ func unpack2(params []byte) []byte {
 }
 
 type Executor interface {
-	Execute([]byte, *cpu.Cpu, *memory.Memory) error
+	Execute(uint16, *cpu.Cpu, *memory.Memory) error
 }
 
 type Passthrough struct{}
 
-func (x Passthrough) Execute(_ []byte, _ *cpu.Cpu, _ *memory.Memory) error {
+func (x Passthrough) Execute(_ uint16, _ *cpu.Cpu, _ *memory.Memory) error {
 	return nil
 }
 
@@ -39,19 +37,15 @@ type Lit2Reg struct {
 	Target register.Register
 }
 
-func (x Lit2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
-	if len(params) != 2 {
-		return fmt.Errorf("LIT2REG[%v]: invalid parameter: %v", x.Target, params)
-	}
-	value := binary.LittleEndian.Uint16(params)
+func (x Lit2Reg) Execute(value uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 	cpu.SetRegister(x.Target, value)
 	return nil
 }
 
-type Reg2Reg struct{}
+type Reg2Reg struct{ Unpacker }
 
-func (x Reg2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
-	params = unpack2(params)
+func (x Reg2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+	params := x.unpack(raw)
 
 	source, err := register.FromByte(params[0])
 	if err != nil {
@@ -70,12 +64,12 @@ func (x Reg2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error 
 
 type Ac2Reg struct{}
 
-func (x Ac2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Ac2Reg) Execute(params uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 	value := cpu.GetRegister(register.Ac)
 
-	destination, err := register.FromByte(params[0])
+	destination, err := register.FromByte(byte(params))
 	if err != nil {
-		return fmt.Errorf("AC2REG: invalid destination register (%#02x): %v", params[0], err)
+		return fmt.Errorf("AC2REG: invalid destination register (%#02x): %v", params, err)
 	}
 
 	cpu.SetRegister(destination, value)
@@ -84,10 +78,10 @@ func (x Ac2Reg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
 
 type Reg2Mem struct{}
 
-func (x Reg2Mem) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
-	r1, err := register.FromByte(params[0])
+func (x Reg2Mem) Execute(params uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+	r1, err := register.FromByte(byte(params))
 	if err != nil {
-		return fmt.Errorf("REG2MEM: invalid register (%#02x): %v", params[0], err)
+		return fmt.Errorf("REG2MEM: invalid register (%#02x): %v", params, err)
 	}
 	value := cpu.GetRegister(r1)
 
@@ -97,21 +91,18 @@ func (x Reg2Mem) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error 
 
 type Lit2Mem struct{}
 
-func (x Lit2Mem) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
-	value := binary.LittleEndian.Uint16(params)
+func (x Lit2Mem) Execute(value uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 	address := memory.Address(cpu.GetRegister(register.Ac))
 	return mem.SetUint16(address, value)
 }
 
 type OperateReg struct {
+	Unpacker
 	Operation Op
 }
 
-func (x OperateReg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
-	if len(params) != 2 {
-		return fmt.Errorf("OP_REG %d: invalid params: %v", x.Operation, params)
-	}
-	params = unpack2(params)
+func (x OperateReg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+	params := x.unpack(raw)
 	r1, err := register.FromByte(params[0])
 	if err != nil {
 		return fmt.Errorf("OP_REG %d: invalid register #1 (%#02x): %v", x.Operation, params[0], err)
@@ -145,14 +136,12 @@ func (x OperateReg) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) err
 }
 
 type OperateRegLit struct {
+	Unpacker
 	Operation Op
 }
 
-func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
-	if len(params) != 2 {
-		return fmt.Errorf("OP_REG_LIT %d: invalid params: %v", x.Operation, params)
-	}
-	params = unpack2(params)
+func (x OperateRegLit) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+	params := x.unpack(raw)
 	r1, err := register.FromByte(params[0])
 	if err != nil {
 		return fmt.Errorf("OP_REG_LIT %d: invalid register (%#02x): %v", x.Operation, params[0], err)
@@ -184,16 +173,14 @@ func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) 
 }
 
 type Jump struct {
+	Unpacker
 	Comparison Comparison
 }
 
-func (x Jump) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Jump) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 	acu := cpu.GetRegister(register.Register(register.Ac))
 
-	if len(params) != 2 {
-		return fmt.Errorf("JMP[%d][%v]: invalid parameter: %v", x.Comparison, acu, params)
-	}
-	params = unpack2(params)
+	params := x.unpack(raw)
 
 	cr, err := register.FromByte(params[0])
 	if err != nil {

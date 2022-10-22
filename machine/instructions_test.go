@@ -113,6 +113,202 @@ func Test_AddRegReg_One(t *testing.T) {
 	}
 }
 
+func Test_SubRegReg_One(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 13),
+		packInstruction(instruction.MOV_LIT_R2, 12),
+		packInstruction2(instruction.SUB_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > 4 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 13 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if vm.cpu.GetRegister(register.R2) != 12 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R2")
+	}
+	if vm.cpu.GetRegister(register.Ac) != 1 {
+		vm.Debug()
+		t.Fatalf("error subtracting R1 and R2: expected 1, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+}
+
+func Test_MulRegReg_One(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 13),
+		packInstruction(instruction.MOV_LIT_R2, 12),
+		packInstruction2(instruction.MUL_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > 4 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 13 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if vm.cpu.GetRegister(register.R2) != 12 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R2")
+	}
+	if vm.cpu.GetRegister(register.Ac) != 156 {
+		vm.Debug()
+		t.Fatalf("error multiplying R1 and R2: expected 156, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+}
+
+func Test_MulRegReg_Overflow(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	var val uint16 = 257
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, val),
+		packInstruction(instruction.MOV_LIT_R2, val),
+		packInstruction2(instruction.MUL_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > 4 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != val {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if vm.cpu.GetRegister(register.R2) != val {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R2")
+	}
+
+	expected := uint16((int(val)*int(val))-0b1111_1111_1111_1111) - 1
+	if vm.cpu.GetRegister(register.Ac) != expected {
+		vm.Debug()
+		t.Fatalf("error multiplying with overflow R1 and R2: expected %d, got: %d",
+			expected, vm.cpu.GetRegister(register.Ac))
+	}
+}
+
+func Test_DivRegReg_Straight(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 120),
+		packInstruction(instruction.MOV_LIT_R2, 12),
+		packInstruction2(instruction.DIV_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > 4 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 120 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if vm.cpu.GetRegister(register.R2) != 12 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R2")
+	}
+	if vm.cpu.GetRegister(register.Ac) != 10 {
+		vm.Debug()
+		t.Fatalf("error straight dividing R1 and R2: expected 10, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+}
+
+func Test_DivRegReg_Round(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 128),
+		packInstruction(instruction.MOV_LIT_R2, 12),
+		packInstruction2(instruction.DIV_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > 4 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 128 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if vm.cpu.GetRegister(register.R2) != 12 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R2")
+	}
+	if vm.cpu.GetRegister(register.Ac) != 10 {
+		vm.Debug()
+		t.Fatalf("error dividing R1 and R2 with rounding down: expected 10, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+}
+
+func Test_ModRegReg_One(t *testing.T) {
+	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
+	program := packProgram(
+		packInstruction(instruction.MOV_LIT_R1, 13),
+		packInstruction(instruction.MOV_LIT_R2, 12),
+		packInstruction2(instruction.MOD_REG_REG, uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+	)
+	vm.LoadProgram(0, program)
+
+	if vm.cpu.GetRegister(register.Ac) != 0 {
+		vm.Debug()
+		t.Fatalf("machine initial state error: expected empty Ac, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+
+	if step, err := run(vm); err != nil || step > 4 {
+		t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
+	}
+
+	if vm.cpu.GetRegister(register.R1) != 13 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if vm.cpu.GetRegister(register.R2) != 12 {
+		vm.Debug()
+		t.Fatalf("error setting immediate value to register R2")
+	}
+	if vm.cpu.GetRegister(register.Ac) != 1 {
+		vm.Debug()
+		t.Fatalf("error modding R1 and R2: expected 1, got: %d", vm.cpu.GetRegister(register.Ac))
+	}
+}
+
 /*
 func Test_Execute_Program(t *testing.T) {
 	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}

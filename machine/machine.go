@@ -78,7 +78,7 @@ func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 	)
 	instructionType := instruction.Type(instrType)
 	// fmt.Printf("\ngot:%016b\nins:%016b\nmeaning: %d\n", instr, instrType, instructionType)
-	if instructionType == instruction.END || instructionType == instruction.HALT {
+	if instructionType == instruction.HALT {
 		vm.status = Done
 		return Instructions[instruction.NOP], nil
 	}

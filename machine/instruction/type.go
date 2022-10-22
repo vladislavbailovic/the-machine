@@ -38,7 +38,6 @@ const (
 	JLE Type = iota
 
 	HALT Type = iota
-	END  Type = iota
 )
 
 func (x Type) AsByte() byte {

@@ -46,6 +46,41 @@ func (x Reg2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 	return nil
 }
 
+type Reg2Stack struct{}
+
+func (x Reg2Stack) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+	source, err := register.FromByte(byte(raw))
+	if err != nil {
+		return fmt.Errorf("REG2STACK: invalid source register (%#02x): %v", raw, err)
+	}
+	value := cpu.GetRegister(source)
+
+	return cpu.Push(value)
+}
+
+type Lit2Stack struct{}
+
+func (x Lit2Stack) Execute(value uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+	return cpu.Push(value)
+}
+
+type Stack2Reg struct{}
+
+func (x Stack2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+	destination, err := register.FromByte(byte(raw))
+	if err != nil {
+		return fmt.Errorf("STACK2REG: invalid source register (%#02x): %v", raw, err)
+	}
+
+	value, err := cpu.Pop()
+	if err != nil {
+		return fmt.Errorf("STACK2REG: stack underflow: %v", err)
+	}
+
+	cpu.SetRegister(destination, value)
+	return nil
+}
+
 type Ac2Reg struct{}
 
 func (x Ac2Reg) Execute(params uint16, cpu *cpu.Cpu, mem *memory.Memory) error {

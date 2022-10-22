@@ -9,6 +9,9 @@ var Descriptors = map[Type]Instruction{
 		Description: "No-op",
 		Executor:    Passthrough{},
 	},
+
+	// Literals to registers
+
 	MOV_LIT_R1: {
 		Description: "Move literal to register R1",
 		Executor:    Lit2Reg{Target: register.R1},
@@ -29,10 +32,29 @@ var Descriptors = map[Type]Instruction{
 		Description: "Move literal to register R7",
 		Executor:    Lit2Reg{Target: register.R7},
 	},
+
+	// Register to register
+
 	MOV_REG_REG: {
 		Description: "Copy value from register to register",
 		Executor:    Reg2Reg{},
 	},
+
+	// Stack
+
+	PUSH_REG: {
+		Description: "Push value from register to stack",
+		Executor:    Reg2Stack{},
+	},
+	PUSH_LIT: {
+		Description: "Push literal value to stack",
+		Executor:    Lit2Stack{},
+	},
+	POP_REG: {
+		Description: "Pop value from stack to register",
+		Executor:    Stack2Reg{},
+	},
+
 	ADD_REG_REG: {
 		Description: "Add contents of two registers",
 		Executor:    OperateReg{Operation: OpAdd},

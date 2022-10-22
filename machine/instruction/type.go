@@ -6,6 +6,10 @@ type Type byte
 const (
 	NOP Type = 0
 
+	PUSH_REG Type = iota
+	PUSH_LIT Type = iota
+	POP_REG  Type = iota
+
 	MOV_LIT_R1 Type = iota
 	MOV_LIT_R2 Type = iota
 	MOV_LIT_R3 Type = iota

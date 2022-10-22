@@ -1,5 +1,6 @@
 package instruction
 
+// Actually 6 bits = 64 instructions max
 type Type byte
 
 const (
@@ -38,7 +39,12 @@ const (
 	JLE Type = iota
 
 	HALT Type = iota
+
+	_sizeofType = iota
 )
+
+// Safeguard assertion for number of instruction types
+var _compileCheck uint8 = 63 - _sizeofType
 
 func (x Type) AsByte() byte {
 	return byte(x)
@@ -56,11 +62,37 @@ func (x Type) Pack(raw ...uint16) []byte {
 	default:
 		panic("can't pack more than 2 bytes worth of data atm")
 	}
-	instr := value | (uint16(x.AsByte()) << 10)
+	instr := value | (uint16(x.AsByte()) << 10) // shift 6 instruction bits
 	return []byte{
 		byte(instr),
 		byte(instr >> 8),
 	}
+}
+
+func Decode(rawInstruction uint16) (Type, uint16) {
+	instructionType := byte(
+		((rawInstruction >> 10) & 0b0000_0000_0011_1111), // extract 6 instruction bits
+	)
+	kind := Type(instructionType)
+	raw := rawInstruction & 0b0000_0011_1111_1111 // mask off 6 instruction bits for params remainder
+	return kind, raw
+}
+
+type unpacker struct{}
+
+// Unpacks individual parameter bytes packed by instruction::Pack
+func (x unpacker) unpack(raw uint16) []byte {
+	b1 := byte(
+		(raw & 0b0000_0000_1111_0000) >> 4,
+	)
+	b2 := byte(
+		raw & 0b0000_0000_0000_1111,
+	)
+	// fmt.Printf("\t- raw: %016b (%d)\n", raw, raw)
+	// fmt.Printf("\t-  b1: %016b (%d)\n", b1, b1)
+	// fmt.Printf("\t-  b2: %016b (%d)\n", b2, b2)
+
+	return []byte{b1, b2}
 }
 
 type Op byte

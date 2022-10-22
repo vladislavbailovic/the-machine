@@ -7,22 +7,6 @@ import (
 	"the-machine/machine/register"
 )
 
-type Unpacker struct{}
-
-func (x Unpacker) unpack(raw uint16) []byte {
-	b1 := byte(
-		(raw & 0b0000_0000_1111_0000) >> 4,
-	)
-	b2 := byte(
-		raw & 0b0000_0000_0000_1111,
-	)
-	// fmt.Printf("\t- raw: %016b (%d)\n", raw, raw)
-	// fmt.Printf("\t-  b1: %016b (%d)\n", b1, b1)
-	// fmt.Printf("\t-  b2: %016b (%d)\n", b2, b2)
-
-	return []byte{b1, b2}
-}
-
 type Executor interface {
 	Execute(uint16, *cpu.Cpu, *memory.Memory) error
 }
@@ -42,7 +26,7 @@ func (x Lit2Reg) Execute(value uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 	return nil
 }
 
-type Reg2Reg struct{ Unpacker }
+type Reg2Reg struct{ unpacker }
 
 func (x Reg2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 	params := x.unpack(raw)
@@ -97,7 +81,7 @@ func (x Lit2Mem) Execute(value uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 }
 
 type OperateReg struct {
-	Unpacker
+	unpacker
 	Operation Op
 }
 
@@ -136,7 +120,7 @@ func (x OperateReg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error 
 }
 
 type OperateRegLit struct {
-	Unpacker
+	unpacker
 	Operation Op
 }
 
@@ -173,7 +157,7 @@ func (x OperateRegLit) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) err
 }
 
 type Jump struct {
-	Unpacker
+	unpacker
 	Comparison Comparison
 }
 

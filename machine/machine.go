@@ -73,23 +73,21 @@ func (vm *Machine) fetch() (uint16, error) {
 func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 	vm.cycle = Decode
 
-	instrType := byte(
-		((instr >> 10) & 0b0000_0000_0011_1111),
-	)
-	instructionType := instruction.Type(instrType)
-	// fmt.Printf("\ngot:%016b\nins:%016b\nmeaning: %d\n", instr, instrType, instructionType)
-	if instructionType == instruction.HALT {
+	kind, raw := instruction.Decode(instr)
+	if kind == instruction.HALT {
 		vm.status = Done
 		return Instructions[instruction.NOP], nil
 	}
 
-	decoded, ok := Instructions[instructionType]
+	decoded, ok := Instructions[kind]
 	if !ok {
 		vm.status = Error
 		return Instructions[instruction.NOP], fmt.Errorf("unknown instruction: %#02x", instr)
 	}
-	decoded.Raw = instr & 0b0000_0011_1111_1111
-	// fmt.Printf("cmd: %v (%d)\npass:\n%016b\n%016b\n", decoded.Description, instructionType, instr, decoded.Raw)
+
+	// fmt.Printf("cmd: %v (%d)\npass:\n%016b\n%016b\n", decoded.Description, kind, instr, raw)
+
+	decoded.Raw = raw
 	return decoded, nil
 }
 

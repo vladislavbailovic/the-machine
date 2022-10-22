@@ -620,7 +620,7 @@ func Test_MovRegReg_Ac2General(t *testing.T) {
 	program := packProgram(
 		packInstruction(instruction.MOV_LIT_R1, 160),
 		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction(instruction.MOV_AC_REG, uint16(register.R2.AsByte())),
+		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R2.AsByte())),
 	)
 	vm.LoadProgram(0, program)
 
@@ -653,7 +653,7 @@ func Test_Jne(t *testing.T) {
 		packInstruction(instruction.MOV_LIT_R2, 13),
 		packInstruction(instruction.MOV_LIT_R3, 4), // Multiple of 2 because uint16 addresses
 		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
 		packInstruction2(instruction.JNE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
@@ -693,7 +693,7 @@ func Test_Jeq(t *testing.T) {
 		packInstruction(instruction.MOV_LIT_R2, 13),
 		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
 		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
 		packInstruction2(instruction.JNE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
@@ -733,7 +733,7 @@ func Test_Jgt(t *testing.T) {
 		packInstruction(instruction.MOV_LIT_R2, 13),
 		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
 		packInstruction2(instruction.SUB_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
 		packInstruction2(instruction.JGT, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
@@ -773,7 +773,7 @@ func Test_Jge(t *testing.T) {
 		packInstruction(instruction.MOV_LIT_R2, 13),
 		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
 		packInstruction2(instruction.SUB_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
 		packInstruction2(instruction.JGE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
@@ -813,7 +813,7 @@ func Test_Jlt(t *testing.T) {
 		packInstruction(instruction.MOV_LIT_R2, 25),
 		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
 		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
 		packInstruction2(instruction.JLT, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)
@@ -853,7 +853,7 @@ func Test_Jle(t *testing.T) {
 		packInstruction(instruction.MOV_LIT_R2, 26),
 		packInstruction(instruction.MOV_LIT_R3, 6), // Multiple of 2 because uint16 addresses
 		packInstruction2(instruction.ADD_REG_LIT, uint16(register.R1.AsByte()), uint16(1)),
-		packInstruction(instruction.MOV_AC_REG, uint16(register.R1.AsByte())),
+		packInstruction2(instruction.MOV_REG_REG, uint16(register.Ac.AsByte()), uint16(register.R1.AsByte())),
 		packInstruction2(instruction.JLE, uint16(register.R2.AsByte()), uint16(register.R3.AsByte())),
 	)
 	vm.LoadProgram(0, program)

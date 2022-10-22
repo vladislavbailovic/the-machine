@@ -10,13 +10,6 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		Description: "No-op",
 		Executor:    instruction.Passthrough{},
 	},
-	instruction.MOV_LIT_AC: {
-		Description: "Move literal to register AC",
-		Parameters: []instruction.Parameter{
-			instruction.ParamLiteral,
-		},
-		Executor: instruction.Lit2Reg{Target: register.Ac},
-	},
 	instruction.MOV_LIT_R1: {
 		Description: "Move literal to register R1",
 		Parameters: []instruction.Parameter{
@@ -56,11 +49,6 @@ var Instructions = map[instruction.Type]instruction.Instruction{
 		Description: "Copy value from register to register",
 		Parameters:  []instruction.Parameter{},
 		Executor:    instruction.Reg2Reg{},
-	},
-	instruction.MOV_AC_REG: {
-		Description: "Copy value from register to register",
-		Parameters:  []instruction.Parameter{},
-		Executor:    instruction.Ac2Reg{},
 	},
 	instruction.ADD_REG_REG: {
 		Description: "Add contents of two registers",

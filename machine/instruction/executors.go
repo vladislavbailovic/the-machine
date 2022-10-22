@@ -102,7 +102,7 @@ type OperateRegLit struct {
 }
 
 func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) error {
-	if len(params) != 3 {
+	if len(params) != 2 {
 		return fmt.Errorf("OP_REG_LIT %d: invalid params: %v", x.Operation, params)
 	}
 	r1, err := register.FromByte(params[0])
@@ -110,7 +110,9 @@ func (x OperateRegLit) Execute(params []byte, cpu *cpu.Cpu, mem *memory.Memory) 
 		return fmt.Errorf("OP_REG_LIT %d: invalid register (%#02x): %v", x.Operation, params[0], err)
 	}
 	reg := cpu.GetRegister(r1)
-	literal := binary.LittleEndian.Uint16(params[1:])
+	literal := uint16(params[1])
+	// fmt.Printf("Got register: %d - %016b (from %016b)\n", params[0], params[0], params[0])
+	// fmt.Printf("Got literal: %d - %016b (from %016b)\n", literal, literal, params[1])
 
 	switch x.Operation {
 	case OpAdd:

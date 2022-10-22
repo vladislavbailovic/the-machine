@@ -11,7 +11,7 @@ import (
 
 func run(vm Machine) (int, error) {
 	step := 0
-	for step < 1 {
+	for step < 127 {
 		if err := vm.Tick(); err != nil {
 			return step, fmt.Errorf("error at tick %d: %v", step, err)
 		}
@@ -23,9 +23,9 @@ func run(vm Machine) (int, error) {
 	return step, nil
 }
 
-func packInstruction(instr instruction.Type, value uint16) []byte {
-	inst1 := value | (uint16(instr.AsByte()) << 12)
-	// fmt.Printf("val:%016b\nins:%016b\nbot:%016b\n", value, uint16(instr), inst1)
+func packInstruction(kind instruction.Type, value uint16) []byte {
+	inst1 := value | (uint16(kind.AsByte()) << 10)
+	// fmt.Printf("val:%016b\nins:%016b\nbot:%016b\n", value, uint16(kind), inst1)
 	// fmt.Printf("shl:%016b\nshr:%016b\n", (inst1 >> 8), (inst1 << 8))
 	return []byte{
 		byte(inst1),
@@ -33,8 +33,18 @@ func packInstruction(instr instruction.Type, value uint16) []byte {
 	}
 }
 
-func Test_WordInstruction_All(t *testing.T) {
-	values := []uint16{161, 13, 12, 255, 512, 1024, 2047, 4095}
+func packProgram(instr ...[]byte) []byte {
+	res := make([]byte, 0, len(instr)+2)
+	for _, b := range instr {
+		res = append(res, b...)
+	}
+	halt := packInstruction(instruction.HALT, 0)
+	res = append(res, halt...)
+	return res
+}
+
+func Test_SingleUint16Instruction_All(t *testing.T) {
+	values := []uint16{161, 13, 12, 255, 512, 1023}
 	registers := map[register.Register]instruction.Type{
 		register.R1: instruction.MOV_LIT_R1,
 		register.R2: instruction.MOV_LIT_R2,
@@ -47,9 +57,10 @@ func Test_WordInstruction_All(t *testing.T) {
 		for reg, instr := range registers {
 			// fmt.Printf("--- %d::%d: %d into %v ---\n", idx, regIdx, value, reg)
 			vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(255)}
-			vm.LoadProgram(0, packInstruction(instr, value))
-			if _, err := run(vm); err != nil {
-				t.Fatalf("error running machine: %v", err)
+			program := packInstruction(instr, value)
+			vm.LoadProgram(0, packProgram(program))
+			if step, err := run(vm); err != nil || step > 2 {
+				t.Fatalf("error running machine or machine stuck: step %d, error: %v", step, err)
 			}
 			if vm.cpu.GetRegister(reg) != value {
 				vm.Debug()

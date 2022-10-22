@@ -76,13 +76,13 @@ func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 	kind, raw := instruction.Decode(instr)
 	if kind == instruction.HALT {
 		vm.status = Done
-		return Instructions[instruction.NOP], nil
+		return instruction.Descriptors[instruction.NOP], nil
 	}
 
-	decoded, ok := Instructions[kind]
+	decoded, ok := instruction.Descriptors[kind]
 	if !ok {
 		vm.status = Error
-		return Instructions[instruction.NOP], fmt.Errorf("unknown instruction: %#02x", instr)
+		return instruction.Descriptors[instruction.NOP], fmt.Errorf("unknown instruction: %#02x", instr)
 	}
 
 	// fmt.Printf("cmd: %v (%d)\npass:\n%016b\n%016b\n", decoded.Description, kind, instr, raw)

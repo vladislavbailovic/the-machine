@@ -28,9 +28,21 @@ var Descriptors = map[Type]Instruction{
 		Description: "Move literal to register R4",
 		Executor:    Lit2Reg{Target: register.R4},
 	},
+	MOV_LIT_R5: {
+		Description: "Move literal to register R5",
+		Executor:    Lit2Reg{Target: register.R5},
+	},
+	MOV_LIT_R6: {
+		Description: "Move literal to register R6",
+		Executor:    Lit2Reg{Target: register.R6},
+	},
 	MOV_LIT_R7: {
 		Description: "Move literal to register R7",
 		Executor:    Lit2Reg{Target: register.R7},
+	},
+	MOV_LIT_R8: {
+		Description: "Move literal to register R8",
+		Executor:    Lit2Reg{Target: register.R8},
 	},
 
 	// Register to register
@@ -60,6 +72,18 @@ var Descriptors = map[Type]Instruction{
 	ADD_STACK: {
 		Description: "Add top 2 stack values and push result",
 		Executor:    OperateStack{Operation: OpAdd},
+	},
+	SUB_STACK: {
+		Description: "Subtract second stack value from stack head and push result",
+		Executor:    OperateStack{Operation: OpSub},
+	},
+	MUL_STACK: {
+		Description: "Multiply top 2 stack values and push result",
+		Executor:    OperateStack{Operation: OpMul},
+	},
+	DIV_STACK: {
+		Description: "Divide stack head by second stack value and push result",
+		Executor:    OperateStack{Operation: OpDiv},
 	},
 
 	// Math

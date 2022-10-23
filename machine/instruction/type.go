@@ -45,6 +45,15 @@ const (
 	SHL_REG_LIT Type = iota
 	SHR_REG_LIT Type = iota
 
+	AND_REG_LIT Type = iota
+	AND_REG_REG Type = iota
+
+	OR_REG_LIT Type = iota
+	OR_REG_REG Type = iota
+
+	XOR_REG_LIT Type = iota
+	XOR_REG_REG Type = iota
+
 	JNE Type = iota
 	JEQ Type = iota
 	JGT Type = iota
@@ -124,6 +133,9 @@ const (
 	OpMod Op = iota
 	OpShl Op = iota
 	OpShr Op = iota
+	OpAnd Op = iota
+	OpOr  Op = iota
+	OpXor Op = iota
 )
 
 type Comparison byte

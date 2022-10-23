@@ -10,7 +10,7 @@ var Descriptors = map[Type]Instruction{
 		Executor:    Passthrough{},
 	},
 
-	// Literals to registers
+	// Data: registers
 
 	MOV_LIT_R1: {
 		Description: "Move literal to register R1",
@@ -44,12 +44,20 @@ var Descriptors = map[Type]Instruction{
 		Description: "Move literal to register R8",
 		Executor:    Lit2Reg{Target: register.R8},
 	},
-
-	// Register to register
-
 	MOV_REG_REG: {
 		Description: "Copy value from register to register",
 		Executor:    Reg2Reg{},
+	},
+
+	// Data: memory
+
+	MOV_REG_MEM: {
+		Description: "Copy content of register to address in accumulator",
+		Executor:    Reg2Mem{},
+	},
+	MOV_LIT_MEM: {
+		Description: "Move literal value to memory address in accumulator",
+		Executor:    Lit2Mem{},
 	},
 
 	// Stack
@@ -128,14 +136,6 @@ var Descriptors = map[Type]Instruction{
 		Description: "Remainder of register with literal value division",
 		Executor:    OperateRegLit{Operation: OpMod},
 	},
-	MOV_REG_MEM: {
-		Description: "Copy content of register to address in accumulator",
-		Executor:    Reg2Mem{},
-	},
-	MOV_LIT_MEM: {
-		Description: "Move literal value to memory address in accumulator",
-		Executor:    Lit2Mem{},
-	},
 
 	// Bitwise
 
@@ -146,6 +146,30 @@ var Descriptors = map[Type]Instruction{
 	SHR_REG_LIT: {
 		Description: "Shift right value in register by literal",
 		Executor:    OperateRegLit{Operation: OpShr},
+	},
+	AND_REG_LIT: {
+		Description: "ANDs value in register by literal",
+		Executor:    OperateRegLit{Operation: OpAnd},
+	},
+	AND_REG_REG: {
+		Description: "ANDs value in register by register value",
+		Executor:    OperateReg{Operation: OpAnd},
+	},
+	OR_REG_LIT: {
+		Description: "ORs value in register by literal",
+		Executor:    OperateRegLit{Operation: OpOr},
+	},
+	OR_REG_REG: {
+		Description: "ORs value in register by register value",
+		Executor:    OperateReg{Operation: OpOr},
+	},
+	XOR_REG_LIT: {
+		Description: "XORs value in register by literal",
+		Executor:    OperateRegLit{Operation: OpXor},
+	},
+	XOR_REG_REG: {
+		Description: "XORs value in register by register value",
+		Executor:    OperateReg{Operation: OpXor},
 	},
 
 	// Conditional jumps

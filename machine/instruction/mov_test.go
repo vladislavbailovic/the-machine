@@ -1,6 +1,7 @@
 package instruction
 
 import (
+	"fmt"
 	"testing"
 	"the-machine/machine/cpu"
 	"the-machine/machine/memory"
@@ -13,9 +14,11 @@ func unpackInstruction(packed []byte) (Instruction, uint16) {
 	mem.SetByte(1, packed[1])
 	raw, _ := mem.GetUint16(0)
 	kind, decoded := Decode(raw)
-	instruction := Descriptors[kind]
-
-	return instruction, decoded
+	if instruction, ok := Descriptors[kind]; !ok {
+		panic(fmt.Sprintf("unknown instruction: %v %d (%#02x) %v", kind, raw, raw, packed))
+	} else {
+		return instruction, decoded
+	}
 }
 
 func runPackedInstructionWithCpu(packed []byte, cpu *cpu.Cpu) (*memory.Memory, error) {
@@ -24,10 +27,12 @@ func runPackedInstructionWithCpu(packed []byte, cpu *cpu.Cpu) (*memory.Memory, e
 	mem.SetByte(1, packed[1])
 	raw, _ := mem.GetUint16(0)
 	kind, decoded := Decode(raw)
-	instruction := Descriptors[kind]
-	err := instruction.Executor.Execute(decoded, cpu, mem)
-
-	return mem, err
+	if instruction, ok := Descriptors[kind]; !ok {
+		panic(fmt.Sprintf("unknown instruction: %v %d (%#02x) %v", kind, raw, raw, packed))
+	} else {
+		err := instruction.Executor.Execute(decoded, cpu, mem)
+		return mem, err
+	}
 }
 
 func runPackedInstruction(packed []byte) (*cpu.Cpu, *memory.Memory, error) {

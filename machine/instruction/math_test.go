@@ -23,7 +23,7 @@ func Test_Add_RegReg(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 
@@ -54,7 +54,7 @@ func Test_Add_RegLit(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 
@@ -83,7 +83,7 @@ func Test_Sub_RegReg(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 
@@ -114,7 +114,7 @@ func Test_Sub_RegLit(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 
@@ -143,7 +143,7 @@ func Test_Mul_RegReg(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 
@@ -174,7 +174,7 @@ func Test_Mul_RegLit(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 
@@ -204,7 +204,7 @@ func Test_Mul_RegReg_Overflow(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 
@@ -237,7 +237,7 @@ func Test_Div_RegReg(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 
@@ -268,7 +268,7 @@ func Test_Div_RegLit(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 
@@ -297,7 +297,7 @@ func Test_Mod_RegReg(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 
@@ -328,7 +328,7 @@ func Test_Mod_RegLit(t *testing.T) {
 	for idx, packed := range packeds {
 		instr, raw := unpackInstruction(packed)
 		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
-			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+			t.Fatalf("%d: error executing instruction %v: %v", idx, instr, err)
 		}
 	}
 

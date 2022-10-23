@@ -186,6 +186,12 @@ func (x OperateRegLit) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) err
 	case OpMod:
 		cpu.SetRegister(register.Ac, reg%literal)
 		return nil
+	case OpShl:
+		cpu.SetRegister(register.Ac, reg<<literal)
+		return nil
+	case OpShr:
+		cpu.SetRegister(register.Ac, reg>>literal)
+		return nil
 	default:
 		return fmt.Errorf("OP_REG_LIT %d: unknown operation", x.Operation)
 	}

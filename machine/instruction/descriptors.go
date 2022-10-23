@@ -137,6 +137,17 @@ var Descriptors = map[Type]Instruction{
 		Executor:    Lit2Mem{},
 	},
 
+	// Bitwise
+
+	SHL_REG_LIT: {
+		Description: "Shift left value in register by literal",
+		Executor:    OperateRegLit{Operation: OpShl},
+	},
+	SHR_REG_LIT: {
+		Description: "Shift right value in register by literal",
+		Executor:    OperateRegLit{Operation: OpShr},
+	},
+
 	// Conditional jumps
 
 	JEQ: {

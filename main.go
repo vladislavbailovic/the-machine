@@ -54,18 +54,14 @@ func main() {
 	)
 	vm.LoadProgram(500, setLimit)
 	vm.LoadProgram(0, packProgram(
-		instruction.MOV_LIT_R1.Pack(4),                                               // R1 = 4
-		instruction.SHL_REG_LIT.Pack(register.R1.AsUint16(), 4),                      // Ac = 64
-		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), 1),                      // Ac = 65
-		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R1.AsUint16()), // R1 = 65 (draw char)
-		instruction.MOV_LIT_R4.Pack(5),
-		instruction.MUL_REG_LIT.Pack(register.R4.AsUint16(), 10),
-		instruction.MUL_REG_LIT.Pack(register.Ac.AsUint16(), 10),
-		instruction.CALL.Pack(register.Ac.AsUint16()),
+		instruction.PUSH_LIT.Pack(65),
+		instruction.POP_REG.Pack(register.R1.AsUint16()), // R1 = 65 (draw char)
+		instruction.PUSH_LIT.Pack(500),
+		instruction.POP_REG.Pack(register.R4.AsUint16()), // R4 = 500 (subroutine address)
+		instruction.CALL.Pack(register.R4.AsUint16()),
 		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R2.AsUint16()), // R2 = 17920 (limit)
-		instruction.MOV_LIT_R3.Pack(15),                                              // R3 = 15
-		instruction.ADD_REG_LIT.Pack(register.R3.AsUint16(), 11),                     // Ac = 24
-		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R3.AsUint16()), // R3 = 24 (jump address-1)*2
+		instruction.PUSH_LIT.Pack(9*2),
+		instruction.POP_REG.Pack(register.R3.AsUint16()),                             // R3 = 18 (jump address-1) *2
 		instruction.MOV_REG_REG.Pack(register.R8.AsUint16(), register.Ac.AsUint16()), // Ac = 0
 		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),                         // Draw
 		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), 1),                      // Ac++

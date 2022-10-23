@@ -28,7 +28,8 @@ func NewCpu() *Cpu {
 	registers[register.R6] = 0
 	registers[register.R7] = 0
 	registers[register.R8] = 0
-	return &Cpu{registers: registers, stack: memory.NewMemory(stackSize)}
+	mem := memory.NewMemory(stackSize).(*memory.Memory)
+	return &Cpu{registers: registers, stack: mem}
 }
 
 func (cpu Cpu) GetRegister(r register.Register) uint16 {

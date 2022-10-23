@@ -5,10 +5,17 @@ import (
 	"fmt"
 )
 
+type MemoryAccess interface {
+	GetByte(Address) (byte, error)
+	GetUint16(Address) (uint16, error)
+	SetByte(Address, byte) error
+	SetUint16(Address, uint16) error
+}
+
 type Address uint16
 type Memory []byte
 
-func NewMemory(size int) *Memory {
+func NewMemory(size int) MemoryAccess {
 	mem := make(Memory, size, size)
 	return &mem
 }

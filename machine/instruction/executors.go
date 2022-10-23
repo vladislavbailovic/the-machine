@@ -8,12 +8,12 @@ import (
 )
 
 type Executor interface {
-	Execute(uint16, *cpu.Cpu, *memory.Memory) error
+	Execute(uint16, *cpu.Cpu, memory.MemoryAccess) error
 }
 
 type Passthrough struct{}
 
-func (x Passthrough) Execute(_ uint16, _ *cpu.Cpu, _ *memory.Memory) error {
+func (x Passthrough) Execute(_ uint16, _ *cpu.Cpu, _ memory.MemoryAccess) error {
 	return nil
 }
 
@@ -21,14 +21,14 @@ type Lit2Reg struct {
 	Target register.Register
 }
 
-func (x Lit2Reg) Execute(value uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Lit2Reg) Execute(value uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	cpu.SetRegister(x.Target, value)
 	return nil
 }
 
 type Reg2Reg struct{ unpacker }
 
-func (x Reg2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Reg2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	params := x.unpack(raw)
 
 	source, err := register.FromByte(params[0])
@@ -48,7 +48,7 @@ func (x Reg2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 
 type Reg2Stack struct{}
 
-func (x Reg2Stack) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Reg2Stack) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	source, err := register.FromByte(byte(raw))
 	if err != nil {
 		return fmt.Errorf("REG2STACK: invalid source register (%#02x): %v", raw, err)
@@ -60,13 +60,13 @@ func (x Reg2Stack) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 
 type Lit2Stack struct{}
 
-func (x Lit2Stack) Execute(value uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Lit2Stack) Execute(value uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	return cpu.Push(value)
 }
 
 type Stack2Reg struct{}
 
-func (x Stack2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Stack2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	destination, err := register.FromByte(byte(raw))
 	if err != nil {
 		return fmt.Errorf("STACK2REG: invalid source register (%#02x): %v", raw, err)
@@ -83,7 +83,7 @@ func (x Stack2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 
 type Ac2Reg struct{}
 
-func (x Ac2Reg) Execute(params uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Ac2Reg) Execute(params uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	value := cpu.GetRegister(register.Ac)
 
 	destination, err := register.FromByte(byte(params))
@@ -97,7 +97,7 @@ func (x Ac2Reg) Execute(params uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 
 type Reg2Mem struct{}
 
-func (x Reg2Mem) Execute(params uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Reg2Mem) Execute(params uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	r1, err := register.FromByte(byte(params))
 	if err != nil {
 		return fmt.Errorf("REG2MEM: invalid register (%#02x): %v", params, err)
@@ -110,7 +110,7 @@ func (x Reg2Mem) Execute(params uint16, cpu *cpu.Cpu, mem *memory.Memory) error 
 
 type Lit2Mem struct{}
 
-func (x Lit2Mem) Execute(value uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Lit2Mem) Execute(value uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	address := memory.Address(cpu.GetRegister(register.Ac))
 	return mem.SetUint16(address, value)
 }
@@ -120,7 +120,7 @@ type OperateReg struct {
 	Operation Op
 }
 
-func (x OperateReg) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x OperateReg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	params := x.unpack(raw)
 	r1, err := register.FromByte(params[0])
 	if err != nil {
@@ -168,7 +168,7 @@ type OperateRegLit struct {
 	Operation Op
 }
 
-func (x OperateRegLit) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x OperateRegLit) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	params := x.unpack(raw)
 	r1, err := register.FromByte(params[0])
 	if err != nil {
@@ -219,7 +219,7 @@ type OperateStack struct {
 	Operation Op
 }
 
-func (x OperateStack) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x OperateStack) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	operand1, err := cpu.Pop()
 	if err != nil {
 		return fmt.Errorf("OP_STACK %d: stack underflow getting first operand: %v", x.Operation, err)
@@ -255,7 +255,7 @@ type Jump struct {
 	Comparison Comparison
 }
 
-func (x Jump) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
+func (x Jump) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	acu := cpu.GetRegister(register.Register(register.Ac))
 
 	params := x.unpack(raw)
@@ -317,7 +317,7 @@ type Halt struct{ Passthrough }
 
 type Call struct{}
 
-func (x Call) Execute(raw uint16, cpu *cpu.Cpu, _ *memory.Memory) error {
+func (x Call) Execute(raw uint16, cpu *cpu.Cpu, _ memory.MemoryAccess) error {
 	reg, err := register.FromByte(byte(raw))
 	if err != nil {
 		return fmt.Errorf("CALL: unknown register %d: %v", raw, err)
@@ -335,7 +335,7 @@ func (x Call) Execute(raw uint16, cpu *cpu.Cpu, _ *memory.Memory) error {
 
 type Return struct{}
 
-func (x Return) Execute(_ uint16, cpu *cpu.Cpu, _ *memory.Memory) error {
+func (x Return) Execute(_ uint16, cpu *cpu.Cpu, _ memory.MemoryAccess) error {
 	if err := cpu.RestoreFrame(); err != nil {
 		return fmt.Errorf("RET: error restoring frame: %v", err)
 	}

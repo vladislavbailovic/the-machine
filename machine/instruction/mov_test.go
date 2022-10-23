@@ -21,7 +21,7 @@ func unpackInstruction(packed []byte) (Instruction, uint16) {
 	}
 }
 
-func runPackedInstructionWithCpu(packed []byte, cpu *cpu.Cpu) (*memory.Memory, error) {
+func runPackedInstructionWithCpu(packed []byte, cpu *cpu.Cpu) (memory.MemoryAccess, error) {
 	mem := memory.NewMemory(2)
 	mem.SetByte(0, packed[0])
 	mem.SetByte(1, packed[1])
@@ -35,7 +35,7 @@ func runPackedInstructionWithCpu(packed []byte, cpu *cpu.Cpu) (*memory.Memory, e
 	}
 }
 
-func runPackedInstruction(packed []byte) (*cpu.Cpu, *memory.Memory, error) {
+func runPackedInstruction(packed []byte) (*cpu.Cpu, memory.MemoryAccess, error) {
 	cpu := cpu.NewCpu()
 	mem, err := runPackedInstructionWithCpu(packed, cpu)
 	return cpu, mem, err

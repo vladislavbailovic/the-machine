@@ -30,7 +30,7 @@ const (
 
 type Machine struct {
 	cpu    *cpu.Cpu
-	memory *memory.Memory
+	memory memory.MemoryAccess
 	status Status
 	cycle  Cycle
 }

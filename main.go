@@ -68,6 +68,12 @@ func main() {
 		instruction.JLT.Pack(register.R2.AsUint16(), register.R3.AsUint16()),         // If Ac < R2, jump to R3
 	))
 	run(vm)
+
+	dbg := machine.NewDebugger(&vm)
+	fmt.Println()
+	fmt.Println(dbg.Peek(0, 8, machine.ROM, machine.Uint, machine.Binary))
+	fmt.Println(dbg.CoreRegisters(machine.Binary))
+	fmt.Println(dbg.GeneralRegisters(machine.Binary))
 }
 
 func outAll() {

@@ -177,6 +177,31 @@ func Test_MovRegReg_GeneralPurpose(t *testing.T) {
 	}
 }
 
+func Test_MovMemReg(t *testing.T) {
+	cpu := cpu.NewCpu()
+	mem := memory.NewMemory(255)
+
+	mem.SetUint16(161, 1312)
+	packeds := [][]byte{
+		MOV_LIT_R1.Pack(161),
+		MOV_MEM_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
+	}
+
+	for idx, packed := range packeds {
+		instr, raw := unpackInstruction(packed)
+		if err := instr.Executor.Execute(raw, cpu, mem); err != nil {
+			t.Fatalf("%d: error executing instruction %v: %err", idx, instr, err)
+		}
+	}
+
+	if cpu.GetRegister(register.R1) != 161 {
+		t.Fatalf("error setting immediate value to register R1")
+	}
+	if cpu.GetRegister(register.R2) != 1312 {
+		t.Fatalf("error copying memory value to R2: %d", cpu.GetRegister(register.R2))
+	}
+}
+
 func Test_MovRegReg_Ac2General(t *testing.T) {
 	cpu := cpu.NewCpu()
 	mem := memory.NewMemory(255)

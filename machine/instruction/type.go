@@ -22,6 +22,7 @@ const (
 	MOV_REG_REG Type = iota
 	MOV_REG_MEM Type = iota
 	MOV_LIT_MEM Type = iota
+	MOV_MEM_REG Type = iota
 
 	ADD_REG_REG Type = iota
 	ADD_REG_LIT Type = iota

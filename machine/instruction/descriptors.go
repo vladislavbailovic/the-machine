@@ -59,6 +59,10 @@ var Descriptors = map[Type]Instruction{
 		Description: "Move literal value to memory address in accumulator",
 		Executor:    Lit2Mem{},
 	},
+	MOV_MEM_REG: {
+		Description: "Copy memory at address in register1 to register 2",
+		Executor:    Mem2Reg{},
+	},
 
 	// Stack
 

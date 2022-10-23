@@ -115,6 +115,31 @@ func (x Lit2Mem) Execute(value uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) er
 	return mem.SetUint16(address, value)
 }
 
+type Mem2Reg struct{ unpacker }
+
+func (x Mem2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
+	params := x.unpack(raw)
+
+	source, err := register.FromByte(params[0])
+	if err != nil {
+		return fmt.Errorf("MEM2REG: invalid address register (%#02x): %v", params[0], err)
+	}
+	address := cpu.GetRegister(source)
+
+	destination, err := register.FromByte(params[1])
+	if err != nil {
+		return fmt.Errorf("MEM2REG: invalid destination register (%#02x): %v", params[1], err)
+	}
+
+	value, err := mem.GetUint16(memory.Address(address))
+	if err != nil {
+		return fmt.Errorf("MEM2REG: error accessing memory at %d (%#02x): %v", address, address, err)
+	}
+
+	cpu.SetRegister(destination, value)
+	return nil
+}
+
 type OperateReg struct {
 	unpacker
 	Operation Op

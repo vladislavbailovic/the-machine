@@ -23,9 +23,13 @@ func packProgram(instr ...[]byte) []byte {
 	return packStatements(instruction.HALT, instr...)
 }
 
+func packSubroutine(instr ...[]byte) []byte {
+	return packStatements(instruction.RET, instr...)
+}
+
 func run(vm machine.Machine) (int, error) {
 	step := 0
-	for step < 65534 {
+	for step < 0xffff {
 		if err := vm.Tick(); err != nil {
 			return step, fmt.Errorf("error at tick %d: %v", step, err)
 		}
@@ -40,24 +44,57 @@ func run(vm machine.Machine) (int, error) {
 func main() {
 	vga := device.NewVideo()
 	vm := machine.NewWithMemory(vga)
+	setLimit := packSubroutine(
+		instruction.PUSH_LIT.Pack(1023),
+		instruction.PUSH_LIT.Pack(17),
+		instruction.MUL_STACK.Pack(),
+		instruction.PUSH_LIT.Pack(459),
+		instruction.ADD_STACK.Pack(),
+		instruction.POP_REG.Pack(register.Ac.AsUint16()),
+	)
+	vm.LoadProgram(500, setLimit)
 	vm.LoadProgram(0, packProgram(
 		instruction.MOV_LIT_R1.Pack(4),                                               // R1 = 4
 		instruction.SHL_REG_LIT.Pack(register.R1.AsUint16(), 4),                      // Ac = 64
 		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), 1),                      // Ac = 65
-		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R1.AsUint16()), // R1 = 65
-		instruction.MOV_LIT_R2.Pack(8),                                               // R2 = 15
-		instruction.SHL_REG_LIT.Pack(register.R2.AsUint16(), 8),                      // Ac = 2048
-		instruction.SHL_REG_LIT.Pack(register.Ac.AsUint16(), 4),                      // Ac = 32768
-		instruction.SUB_REG_LIT.Pack(register.Ac.AsUint16(), 1),                      // Ac = 32767
-		instruction.MUL_REG_LIT.Pack(register.Ac.AsUint16(), 2),                      // Ac = 65534
-		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R2.AsUint16()), // R2 = 65534
-		instruction.MOV_LIT_R3.Pack(15),                                              // R3 = 15 (jump address)
-		instruction.ADD_REG_LIT.Pack(register.R3.AsUint16(), 13),                     // Ac = 28 (jump address)
-		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R3.AsUint16()), // R3 = 28 (jump address)
+		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R1.AsUint16()), // R1 = 65 (draw char)
+		instruction.MOV_LIT_R4.Pack(5),
+		instruction.MUL_REG_LIT.Pack(register.R4.AsUint16(), 10),
+		instruction.MUL_REG_LIT.Pack(register.Ac.AsUint16(), 10),
+		instruction.CALL.Pack(register.Ac.AsUint16()),
+		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R2.AsUint16()), // R2 = 17920 (limit)
+		instruction.MOV_LIT_R3.Pack(15),                                              // R3 = 15
+		instruction.ADD_REG_LIT.Pack(register.R3.AsUint16(), 11),                     // Ac = 24
+		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R3.AsUint16()), // R3 = 24 (jump address-1)*2
 		instruction.MOV_REG_REG.Pack(register.R8.AsUint16(), register.Ac.AsUint16()), // Ac = 0
-		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
-		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), 1), // Ac++
-		instruction.JLT.Pack(register.R2.AsUint16(), register.R3.AsUint16()),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),                         // Draw
+		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), 1),                      // Ac++
+		instruction.JLT.Pack(register.R2.AsUint16(), register.R3.AsUint16()),         // If Ac < R2, jump to R3
+	))
+	run(vm)
+}
+
+func outAll() {
+	vga := device.NewVideo()
+	vm := machine.NewWithMemory(vga)
+	vm.LoadProgram(0, packProgram(
+		instruction.MOV_LIT_R1.Pack(4),                                               // 01: R1 = 4
+		instruction.SHL_REG_LIT.Pack(register.R1.AsUint16(), 4),                      // 02: Ac = 64
+		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), 1),                      // 03: Ac = 65
+		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R1.AsUint16()), // 04: R1 = 65 (draw char)
+		instruction.MOV_LIT_R2.Pack(8),                                               // 05: R2 = 15
+		instruction.SHL_REG_LIT.Pack(register.R2.AsUint16(), 8),                      // 06: Ac = 2048
+		instruction.SHL_REG_LIT.Pack(register.Ac.AsUint16(), 4),                      // 07: Ac = 32768
+		instruction.SUB_REG_LIT.Pack(register.Ac.AsUint16(), 1),                      // 08: Ac = 32767
+		instruction.MUL_REG_LIT.Pack(register.Ac.AsUint16(), 2),                      // 09: Ac = 65534
+		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R2.AsUint16()), // 10: R2 = 65534 (limit)
+		instruction.MOV_LIT_R3.Pack(15),                                              // 11: R3 = 15
+		instruction.ADD_REG_LIT.Pack(register.R3.AsUint16(), 13),                     // 12: Ac = 28
+		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R3.AsUint16()), // 13: R3 = 28 (jump address-1)*2
+		instruction.MOV_REG_REG.Pack(register.R8.AsUint16(), register.Ac.AsUint16()), // 14: Ac = 0
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),                         // 15: Draw
+		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), 1),                      // 16: Ac++
+		instruction.JLT.Pack(register.R2.AsUint16(), register.R3.AsUint16()),         // 17: If Ac < R2, jump to R3
 	))
 	run(vm)
 	vm.Debug()

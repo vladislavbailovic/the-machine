@@ -43,7 +43,7 @@ func run(vm machine.Machine) (int, error) {
 
 func main() {
 	vga := device.NewVideo()
-	vm := machine.NewWithMemory(vga)
+	vm := machine.NewWithMemory(vga, 1024)
 	setLimit := packSubroutine(
 		instruction.PUSH_LIT.Pack(1023),
 		instruction.PUSH_LIT.Pack(17),
@@ -72,7 +72,7 @@ func main() {
 
 func outAll() {
 	vga := device.NewVideo()
-	vm := machine.NewWithMemory(vga)
+	vm := machine.NewWithMemory(vga, 1024)
 	vm.LoadProgram(0, packProgram(
 		instruction.MOV_LIT_R1.Pack(4),                                               // 01: R1 = 4
 		instruction.SHL_REG_LIT.Pack(register.R1.AsUint16(), 4),                      // 02: Ac = 64

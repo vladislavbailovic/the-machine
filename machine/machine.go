@@ -46,10 +46,10 @@ func NewMachine(memsize int) Machine {
 	}
 }
 
-func NewWithMemory(mem memory.MemoryAccess) Machine {
+func NewWithMemory(mem memory.MemoryAccess, ramSize int) Machine {
 	return Machine{
 		cpu:    cpu.NewCpu(),
-		rom:    memory.NewMemory(2048),
+		rom:    memory.NewMemory(ramSize),
 		ram:    mem,
 		status: Ready,
 		cycle:  Idle,

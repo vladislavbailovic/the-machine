@@ -30,7 +30,8 @@ const (
 
 type Machine struct {
 	cpu    *cpu.Cpu
-	memory memory.MemoryAccess
+	rom    memory.MemoryAccess
+	ram    memory.MemoryAccess
 	status Status
 	cycle  Cycle
 }
@@ -38,7 +39,18 @@ type Machine struct {
 func NewMachine(memsize int) Machine {
 	return Machine{
 		cpu:    cpu.NewCpu(),
-		memory: memory.NewMemory(memsize),
+		rom:    memory.NewMemory(memsize),
+		ram:    memory.NewMemory(memsize),
+		status: Ready,
+		cycle:  Idle,
+	}
+}
+
+func NewWithMemory(mem memory.MemoryAccess) Machine {
+	return Machine{
+		cpu:    cpu.NewCpu(),
+		rom:    memory.NewMemory(2048),
+		ram:    mem,
 		status: Ready,
 		cycle:  Idle,
 	}
@@ -46,7 +58,7 @@ func NewMachine(memsize int) Machine {
 
 func (vm *Machine) LoadProgram(at memory.Address, program []byte) error {
 	for idx, b := range program {
-		if err := vm.memory.SetByte(at+memory.Address(idx), b); err != nil {
+		if err := vm.rom.SetByte(at+memory.Address(idx), b); err != nil {
 			return fmt.Errorf("error loading program at %d+%d (%#02x): %v", at, idx, b, err)
 		}
 	}
@@ -59,7 +71,7 @@ func (vm *Machine) fetch() (uint16, error) {
 	ip := vm.cpu.GetRegister(register.Ip)
 
 	ipAddr := memory.Address(ip)
-	instr, err := vm.memory.GetUint16(ipAddr)
+	instr, err := vm.rom.GetUint16(ipAddr)
 	if err != nil {
 		vm.status = Error
 		return instr, fmt.Errorf("unable to get next instruction: %v", err)
@@ -93,7 +105,7 @@ func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 
 func (vm *Machine) execute(instr instruction.Instruction) error {
 	vm.cycle = Execute
-	if err := instr.Execute(vm.cpu, vm.memory); err != nil {
+	if err := instr.Execute(vm.cpu, vm.ram); err != nil {
 		vm.status = Error
 		return fmt.Errorf("error executing %#02x: %v", instr, err)
 	}
@@ -144,7 +156,7 @@ func (vm *Machine) Debug() {
 		for i := 0; i < 8; i++ {
 			pos := (ad + uint16(i)) - 8
 			bpos[i] = fmt.Sprintf("%04d", pos)
-			b, _ := vm.memory.GetByte(memory.Address(pos))
+			b, _ := vm.ram.GetByte(memory.Address(pos))
 			bval[i] = fmt.Sprintf("%#02x", b)
 		}
 	}
@@ -152,14 +164,14 @@ func (vm *Machine) Debug() {
 	for i := 0; i < 8; i++ {
 		pos := ad + uint16(i)
 		positions[i] = fmt.Sprintf("%04d", pos)
-		b, _ := vm.memory.GetByte(memory.Address(pos))
+		b, _ := vm.ram.GetByte(memory.Address(pos))
 		values[i] = fmt.Sprintf("%#02x", b)
 	}
 
 	for i := 0; i < 8; i++ {
 		pos := ad + uint16(i+8)
 		apos[i] = fmt.Sprintf("%04d", pos)
-		b, _ := vm.memory.GetByte(memory.Address(pos))
+		b, _ := vm.ram.GetByte(memory.Address(pos))
 		aval[i] = fmt.Sprintf("%#02x", b)
 	}
 

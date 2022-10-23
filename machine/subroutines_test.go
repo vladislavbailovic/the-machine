@@ -33,7 +33,7 @@ func Test_Call_Simple(t *testing.T) {
 		instruction.MOV_LIT_R3.Pack(161),
 	)
 
-	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(2048)}
+	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(2048), rom: memory.NewMemory(2048)}
 	vm.LoadProgram(225, subroutine)
 	vm.LoadProgram(0, main)
 
@@ -44,7 +44,7 @@ func Test_Call_Simple(t *testing.T) {
 
 	// Ensure memory actually being set in subroutine:
 
-	sb1, err := vm.memory.GetByte(1050)
+	sb1, err := vm.ram.GetByte(1050)
 	if err != nil {
 		vm.Debug()
 		t.Fatalf("expected subroutine memory set #1: %v", err)
@@ -54,7 +54,7 @@ func Test_Call_Simple(t *testing.T) {
 		t.Fatalf("expected subroutine to set memory at offset to be 13, got %d (%#02x/%016b)", sb1, sb1, sb1)
 	}
 
-	sb2, err := vm.memory.GetByte(1051)
+	sb2, err := vm.ram.GetByte(1051)
 	if err != nil {
 		vm.Debug()
 		t.Fatalf("expected subroutine memory set #1: %v", err)
@@ -115,7 +115,7 @@ func Test_Call_Nested(t *testing.T) {
 		instruction.MOV_LIT_R3.Pack(161),
 	)
 
-	vm := Machine{cpu: cpu.NewCpu(), memory: memory.NewMemory(2048)}
+	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(2048), rom: memory.NewMemory(2048)}
 	vm.LoadProgram(225, subroutine1)
 	vm.LoadProgram(500, subroutine2)
 	vm.LoadProgram(0, main)
@@ -127,7 +127,7 @@ func Test_Call_Nested(t *testing.T) {
 
 	// Ensure memory actually being set in subroutine:
 
-	sb1, err := vm.memory.GetByte(1050)
+	sb1, err := vm.ram.GetByte(1050)
 	if err != nil {
 		vm.Debug()
 		t.Fatalf("expected subroutine memory set #1: %v", err)
@@ -137,7 +137,7 @@ func Test_Call_Nested(t *testing.T) {
 		t.Fatalf("expected subroutine to set memory at offset to be 13, got %d (%#02x/%016b)", sb1, sb1, sb1)
 	}
 
-	sb2, err := vm.memory.GetByte(1051)
+	sb2, err := vm.ram.GetByte(1051)
 	if err != nil {
 		vm.Debug()
 		t.Fatalf("expected subroutine memory set #1: %v", err)

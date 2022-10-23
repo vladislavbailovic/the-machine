@@ -264,17 +264,17 @@ func (x Jump) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	if err != nil {
 		return fmt.Errorf("JMP[%d][%v]: invalid comparison register (%#02x): %v", x.Comparison, cr, params[0], err)
 	}
-	fmt.Printf("\t- Comparison register: %v (%016b)\n", cr, params[0])
+	// fmt.Printf("\t- Comparison register: %v (%016b)\n", cr, params[0])
 	compareWith := cpu.GetRegister(cr)
 
 	ar, err := register.FromByte(params[1])
 	if err != nil {
 		return fmt.Errorf("JMP[%d][%v]: invalid address register (%#02x): %v", x.Comparison, acu, params[1], err)
 	}
-	fmt.Printf("\t- Address register: %v (%016b)\n", ar, params[1])
+	// fmt.Printf("\t- Address register: %v (%016b)\n", ar, params[1])
 	address := cpu.GetRegister(ar)
 
-	fmt.Printf("\tComparing %d from %v (%d) %d from acu\n", compareWith, cr, x.Comparison, acu)
+	// fmt.Printf("\tComparing %d from %v (%d) %d from acu\n", compareWith, cr, x.Comparison, acu)
 
 	writeIp := false
 	switch x.Comparison {
@@ -307,7 +307,7 @@ func (x Jump) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	}
 
 	if writeIp {
-		fmt.Printf("----- Gonna JUMP to %d ----\n", address)
+		// fmt.Printf("----- Gonna JUMP to %d ----\n", address)
 		cpu.SetRegister(register.Ip, address)
 	}
 	return nil

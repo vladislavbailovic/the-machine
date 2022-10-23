@@ -290,3 +290,30 @@ func (x Jump) Execute(raw uint16, cpu *cpu.Cpu, mem *memory.Memory) error {
 }
 
 type Halt struct{ Passthrough }
+
+type Call struct{}
+
+func (x Call) Execute(raw uint16, cpu *cpu.Cpu, _ *memory.Memory) error {
+	reg, err := register.FromByte(byte(raw))
+	if err != nil {
+		return fmt.Errorf("CALL: unknown register %d: %v", raw, err)
+	}
+	address := cpu.GetRegister(reg)
+
+	if err := cpu.StoreFrame(); err != nil {
+		return fmt.Errorf("CALL: error storing frame before calling %d: %v", address, err)
+	}
+
+	cpu.SetRegister(register.Ip, address)
+
+	return nil
+}
+
+type Return struct{}
+
+func (x Return) Execute(_ uint16, cpu *cpu.Cpu, _ *memory.Memory) error {
+	if err := cpu.RestoreFrame(); err != nil {
+		return fmt.Errorf("RET: error restoring frame: %v", err)
+	}
+	return nil
+}

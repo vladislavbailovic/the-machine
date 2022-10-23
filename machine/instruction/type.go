@@ -49,6 +49,9 @@ const (
 	JLT Type = iota
 	JLE Type = iota
 
+	CALL Type = iota
+	RET  Type = iota
+
 	HALT Type = iota
 
 	_sizeofType = iota

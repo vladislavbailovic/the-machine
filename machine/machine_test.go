@@ -23,14 +23,17 @@ func run(vm Machine) (int, error) {
 	return step, nil
 }
 
-func packProgram(instr ...[]byte) []byte {
+func packStatements(last instruction.Type, instr ...[]byte) []byte {
 	res := make([]byte, 0, len(instr)+2)
 	for _, b := range instr {
 		res = append(res, b...)
 	}
-	halt := instruction.HALT.Pack(0)
-	res = append(res, halt...)
+	res = append(res, last.Pack(0)...)
 	return res
+}
+
+func packProgram(instr ...[]byte) []byte {
+	return packStatements(instruction.HALT, instr...)
 }
 
 func Test_Machine_Pack2Regs(t *testing.T) {

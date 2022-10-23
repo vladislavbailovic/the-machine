@@ -11,6 +11,10 @@ func (r Register) AsByte() byte {
 	return r.pos
 }
 
+func (r Register) AsUint16() uint16 {
+	return uint16(r.pos)
+}
+
 var Ip = Register{
 	name: "Instruction Pointer",
 	pos:  15,

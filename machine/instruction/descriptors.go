@@ -93,7 +93,7 @@ var Descriptors = map[Type]Instruction{
 		Executor:    OperateReg{Operation: OpAdd},
 	},
 	ADD_REG_LIT: {
-		Description: "Add literal value to register",
+		Description: "Add literal value to register (0-15)",
 		Executor:    OperateRegLit{Operation: OpAdd},
 	},
 	SUB_REG_REG: {
@@ -136,6 +136,9 @@ var Descriptors = map[Type]Instruction{
 		Description: "Move literal value to memory address in accumulator",
 		Executor:    Lit2Mem{},
 	},
+
+	// Conditional jumps
+
 	JEQ: {
 		Description: "Jump to 2nd register address if Ac equal to 1st parameter register",
 		Executor:    Jump{Comparison: CompEq},
@@ -159,5 +162,16 @@ var Descriptors = map[Type]Instruction{
 	JLE: {
 		Description: "Jump to 2nd register address if Ac less than or equal to 1st parameter register",
 		Executor:    Jump{Comparison: CompLe},
+	},
+
+	// Subroutines
+
+	CALL: {
+		Description: "Call subroutine at address in register parameter",
+		Executor:    Call{},
+	},
+	RET: {
+		Description: "Return from subroutine",
+		Executor:    Return{},
 	},
 }

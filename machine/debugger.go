@@ -105,6 +105,36 @@ func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType
 	return x.formatter.Stitch(positions, values)
 }
 
+func (x Debugger) Disassemble(startAt memory.Address, outputLen int) string {
+	x.formatter.OutputAs = debug.Uint // Required for disassembly
+	source := x.vm.rom
+
+	positions := make([]string, outputLen, outputLen)
+	values := make([]string, outputLen, outputLen)
+	instructions := make([]string, outputLen, outputLen)
+	for i := 0; i < outputLen; i++ {
+		pos := int(startAt) + i
+		positions[i], values[i] = x.renderPosition(source, memory.Address(pos))
+
+		instr := strings.Repeat(" ", len(positions[i]))
+		if i%2 == 0 {
+			if b, err := source.GetUint16(memory.Address(pos)); err != nil {
+				x.out(fmt.Sprintf("ERROR: unable to access uint at %v: %v", pos, err))
+			} else {
+				decoded, err := x.vm.decode(b)
+				if err != nil {
+					x.out(fmt.Sprintf("ERROR: unable to disassemble at %d: %d: %v", pos, b, err))
+				} else {
+					instr = fmt.Sprintf("%v :: %v (%#010b)", decoded, decoded.Raw, decoded.Raw)
+				}
+			}
+		}
+		instructions[i] = instr
+	}
+
+	return x.formatter.Stitch(positions, values, instructions)
+}
+
 func (x Debugger) renderPosition(source memory.MemoryAccess, at memory.Address) (string, string) {
 	posFormat, valFormat := x.formatter.GetFormat()
 	position := fmt.Sprintf(posFormat, at)

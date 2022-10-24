@@ -72,12 +72,13 @@ func main() {
 
 	fmtr := debug.Formatter{
 		Numbers:   debug.Binary,
-		OutputAs:  debug.Uint,
+		OutputAs:  debug.Byte,
 		Rendering: debug.Vertical,
 	}
 	dbg := machine.NewDebugger(&vm, fmtr)
 	fmt.Println()
-	fmt.Println(dbg.Peek(0, 8, machine.ROM))
+	fmt.Println(dbg.Peek(0, 8, machine.RAM))
+	fmt.Println(dbg.Disassemble(0, 12))
 
 	fmtr.Numbers = debug.Decimal
 	fmtr.Rendering = debug.Horizontal

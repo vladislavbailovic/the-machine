@@ -69,9 +69,14 @@ func main() {
 	))
 	run(vm)
 
-	dbg := machine.NewDebugger(&vm)
+	fmtr := machine.Formatter{
+		Numbers:   machine.Binary,
+		OutputAs:  machine.Uint,
+		Rendering: machine.Vertical,
+	}
+	dbg := machine.NewDebugger(&vm, fmtr)
 	fmt.Println()
-	fmt.Println(dbg.Peek(0, 8, machine.ROM, machine.Uint, machine.Binary))
+	fmt.Println(dbg.Peek(0, 8, machine.ROM))
 	fmt.Println(dbg.CoreRegisters(machine.Binary))
 	fmt.Println(dbg.GeneralRegisters(machine.Binary))
 }

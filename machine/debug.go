@@ -30,13 +30,21 @@ const (
 	Decimal Representation = iota
 )
 
+type RenderingDirection uint8
+
+const (
+	Horizontal RenderingDirection = 0
+	Vertical   RenderingDirection = iota
+)
+
 type Debugger struct {
-	vm     *Machine
-	stream io.Writer
+	vm        *Machine
+	stream    io.Writer
+	formatter Formatter
 }
 
-func NewDebugger(vm *Machine) Debugger {
-	return Debugger{vm: vm}
+func NewDebugger(vm *Machine, f Formatter) Debugger {
+	return Debugger{vm: vm, formatter: f}
 }
 
 func (x Debugger) CoreRegisters(number Representation) string {
@@ -62,7 +70,7 @@ func (x Debugger) GeneralRegisters(number Representation) string {
 }
 
 func (x Debugger) registers(registers map[string]register.Register, number Representation) string {
-	_, valFormat := x.getFormat(number, Uint)
+	_, valFormat := x.formatter.getFormat()
 	positions := make([]string, len(registers))
 	values := make([]string, len(registers))
 	idx := 0
@@ -73,10 +81,10 @@ func (x Debugger) registers(registers map[string]register.Register, number Repre
 		positions[idx] = fmt.Sprintf(format, name)
 		idx++
 	}
-	return x.stitchRows(positions, values)
+	return x.formatter.stitch(positions, values)
 }
 
-func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType, outputAs Resolution, number Representation) string {
+func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType) string {
 	var source memory.MemoryAccess
 	switch srcType {
 	case RAM:
@@ -92,48 +100,17 @@ func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType
 	values := make([]string, outputLen, outputLen)
 	for i := 0; i < outputLen; i++ {
 		pos := int(startAt) + i
-		positions[i], values[i] = x.renderPosition(source, memory.Address(pos), outputAs, number)
+		positions[i], values[i] = x.renderPosition(source, memory.Address(pos))
 	}
 
-	// return x.stitchRows(positions, values)
-	return x.stitchCols(positions, values)
+	return x.formatter.stitch(positions, values)
 }
 
-func (x Debugger) stitchRows(first []string, rest ...[]string) string {
-	out := make([]string, len(rest)+1)
-	out[0] = strings.Join(first, " ")
-	separator := strings.Repeat("-", len(out[0]))
-	for idx, item := range rest {
-		out[idx+1] = strings.Join(item, " ")
-	}
-	return strings.Join(out, fmt.Sprintf("\n%s\n", separator))
-}
-
-func (x Debugger) stitchCols(first []string, rest ...[]string) string {
-	cols := make([]string, len(rest)+1)
-	rows := make([]string, len(first))
-
-	for rowIdx, item := range first {
-		cols[0] = item
-		ln := len(item)
-		for colIdx, col := range rest {
-			if rowIdx < len(col) {
-				cols[colIdx+1] = col[rowIdx]
-				ln = len(col[rowIdx])
-			} else {
-				cols[colIdx+1] = strings.Repeat(" ", ln)
-			}
-		}
-		rows[rowIdx] = strings.Join(cols, " | ")
-	}
-	return strings.Join(rows, "\n")
-}
-
-func (x Debugger) renderPosition(source memory.MemoryAccess, at memory.Address, outputAs Resolution, number Representation) (string, string) {
-	posFormat, valFormat := x.getFormat(number, outputAs)
+func (x Debugger) renderPosition(source memory.MemoryAccess, at memory.Address) (string, string) {
+	posFormat, valFormat := x.formatter.getFormat()
 	position := fmt.Sprintf(posFormat, at)
 	var value string
-	switch outputAs {
+	switch x.formatter.OutputAs {
 	case Byte:
 		if b, err := source.GetByte(at); err != nil {
 			x.out(fmt.Sprintf("ERROR: unable to access byte at %v: %v", at, err))
@@ -158,12 +135,22 @@ func (x Debugger) renderPosition(source memory.MemoryAccess, at memory.Address, 
 	return position, value
 }
 
-func (x Debugger) getFormat(number Representation, outputAs Resolution) (string, string) {
+func (x Debugger) out(msg string) {
+	fmt.Println(msg)
+}
+
+type Formatter struct {
+	Numbers   Representation
+	OutputAs  Resolution
+	Rendering RenderingDirection
+}
+
+func (x Formatter) getFormat() (string, string) {
 	posFormat := "%4d"
 	valFormat := "%#02x"
-	switch number {
+	switch x.Numbers {
 	case Binary:
-		switch outputAs {
+		switch x.OutputAs {
 		case Byte:
 			posFormat = "%10d"
 			valFormat = "%#08b"
@@ -172,7 +159,7 @@ func (x Debugger) getFormat(number Representation, outputAs Resolution) (string,
 			valFormat = "%#016b"
 		}
 	case Decimal:
-		switch outputAs {
+		switch x.OutputAs {
 		case Byte:
 			posFormat = "%3d"
 			valFormat = "%3d"
@@ -185,6 +172,44 @@ func (x Debugger) getFormat(number Representation, outputAs Resolution) (string,
 	return posFormat, valFormat
 }
 
-func (x Debugger) out(msg string) {
-	fmt.Println(msg)
+func (x Formatter) stitch(first []string, rest ...[]string) string {
+	switch x.Rendering {
+	case Vertical:
+		return x.stitchCols(first, rest...)
+	case Horizontal:
+		return x.stitchRows(first, rest...)
+	default:
+		return fmt.Sprintf("ERROR: unknown rendering direction: %d", x.Rendering)
+	}
+	return ""
+}
+
+func (x Formatter) stitchRows(first []string, rest ...[]string) string {
+	out := make([]string, len(rest)+1)
+	out[0] = strings.Join(first, " ")
+	separator := strings.Repeat("-", len(out[0]))
+	for idx, item := range rest {
+		out[idx+1] = strings.Join(item, " ")
+	}
+	return strings.Join(out, fmt.Sprintf("\n%s\n", separator))
+}
+
+func (x Formatter) stitchCols(first []string, rest ...[]string) string {
+	cols := make([]string, len(rest)+1)
+	rows := make([]string, len(first))
+
+	for rowIdx, item := range first {
+		cols[0] = item
+		ln := len(item)
+		for colIdx, col := range rest {
+			if rowIdx < len(col) {
+				cols[colIdx+1] = col[rowIdx]
+				ln = len(col[rowIdx])
+			} else {
+				cols[colIdx+1] = strings.Repeat(" ", ln)
+			}
+		}
+		rows[rowIdx] = strings.Join(cols, " | ")
+	}
+	return strings.Join(rows, "\n")
 }

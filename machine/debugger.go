@@ -109,20 +109,24 @@ func (x Debugger) renderPosition(source memory.MemoryAccess, at memory.Address) 
 	posFormat, valFormat := x.formatter.GetFormat()
 	position := fmt.Sprintf(posFormat, at)
 	var value string
-	switch x.formatter.OutputAs {
-	case debug.Byte:
-		if b, err := source.GetByte(at); err != nil {
-			x.out(fmt.Sprintf("ERROR: unable to access byte at %v: %v", at, err))
-			return position, fmt.Sprintf(strings.Repeat("", len(position)))
-		} else {
-			value = fmt.Sprintf(valFormat, b)
-		}
-	case debug.Uint:
-		if b, err := source.GetUint16(at); err != nil {
-			x.out(fmt.Sprintf("ERROR: unable to access uint at %v: %v", at, err))
-			return position, fmt.Sprintf(strings.Repeat("", len(position)))
-		} else {
-			value = fmt.Sprintf(valFormat, b)
+	if x.formatter.OutputAs == debug.Uint && uint16(at)%2 != 0 {
+		value = strings.Repeat(" ", len(position))
+	} else {
+		switch x.formatter.OutputAs {
+		case debug.Byte:
+			if b, err := source.GetByte(at); err != nil {
+				x.out(fmt.Sprintf("ERROR: unable to access byte at %v: %v", at, err))
+				return position, fmt.Sprintf(strings.Repeat("", len(position)))
+			} else {
+				value = fmt.Sprintf(valFormat, b)
+			}
+		case debug.Uint:
+			if b, err := source.GetUint16(at); err != nil {
+				x.out(fmt.Sprintf("ERROR: unable to access uint at %v: %v", at, err))
+				return position, fmt.Sprintf(strings.Repeat("", len(position)))
+			} else {
+				value = fmt.Sprintf(valFormat, b)
+			}
 		}
 	}
 

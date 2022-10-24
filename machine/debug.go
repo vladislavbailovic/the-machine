@@ -43,8 +43,12 @@ type Debugger struct {
 	formatter Formatter
 }
 
-func NewDebugger(vm *Machine, f Formatter) Debugger {
-	return Debugger{vm: vm, formatter: f}
+func NewDebugger(vm *Machine, f Formatter) *Debugger {
+	return &Debugger{vm: vm, formatter: f}
+}
+
+func (x *Debugger) SetFormatter(f Formatter) {
+	x.formatter = f
 }
 
 func (x Debugger) CoreRegisters() string {

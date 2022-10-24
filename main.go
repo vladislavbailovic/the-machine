@@ -77,6 +77,9 @@ func main() {
 	dbg := machine.NewDebugger(&vm, fmtr)
 	fmt.Println()
 	fmt.Println(dbg.Peek(0, 8, machine.ROM))
+
+	fmtr.Numbers = machine.Decimal
+	dbg.SetFormatter(fmtr)
 	fmt.Println(dbg.CoreRegisters())
 	fmt.Println(dbg.GeneralRegisters())
 }

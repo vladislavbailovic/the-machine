@@ -81,8 +81,7 @@ func main() {
 	fmtr.Numbers = machine.Decimal
 	fmtr.Rendering = machine.Horizontal
 	dbg.SetFormatter(fmtr)
-	fmt.Println(dbg.CoreRegisters())
-	fmt.Println(dbg.GeneralRegisters())
+	fmt.Println(dbg.AllRegisters())
 }
 
 func outAll() {

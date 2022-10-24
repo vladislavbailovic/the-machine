@@ -52,38 +52,54 @@ func (x *Debugger) SetFormatter(f Formatter) {
 }
 
 func (x Debugger) CoreRegisters() string {
-	return x.registers(map[string]register.Register{
-		"Ip": register.Ip,
-		"Ac": register.Ac,
-		"Sp": register.Sp,
-		"Fp": register.Fp,
+	return x.registers([]register.Register{
+		register.Ip,
+		register.Ac,
+		register.Sp,
+		register.Fp,
 	})
 }
 
 func (x Debugger) GeneralRegisters() string {
-	return x.registers(map[string]register.Register{
-		"R1": register.R1,
-		"R2": register.R2,
-		"R3": register.R3,
-		"R4": register.R4,
-		"R5": register.R5,
-		"R6": register.R6,
-		"R7": register.R7,
-		"R8": register.R8,
+	return x.registers([]register.Register{
+		register.R1,
+		register.R2,
+		register.R3,
+		register.R4,
+		register.R5,
+		register.R6,
+		register.R7,
+		register.R8,
 	})
 }
 
-func (x Debugger) registers(registers map[string]register.Register) string {
+func (x Debugger) AllRegisters() string {
+	return x.registers([]register.Register{
+		register.Ip,
+		register.Ac,
+		register.Sp,
+		register.Fp,
+		register.R1,
+		register.R2,
+		register.R3,
+		register.R4,
+		register.R5,
+		register.R6,
+		register.R7,
+		register.R8,
+	})
+}
+
+func (x Debugger) registers(registers []register.Register) string {
 	_, valFormat := x.formatter.getFormat()
 	positions := make([]string, len(registers))
 	values := make([]string, len(registers))
-	idx := 0
-	for name, register := range registers {
+	for idx, register := range registers {
+		name := register.Name()
 		value := x.vm.cpu.GetRegister(register)
 		values[idx] = fmt.Sprintf(valFormat, value)
 		format := fmt.Sprintf("%%%ds", len(values[idx]))
 		positions[idx] = fmt.Sprintf(format, name)
-		idx++
 	}
 	return x.formatter.Stitch(positions, values)
 }

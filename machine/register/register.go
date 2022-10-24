@@ -3,76 +3,93 @@ package register
 import "fmt"
 
 type Register struct {
-	name string
-	pos  byte
+	description string
+	name        string
+	pos         byte
 }
 
-func (r Register) AsByte() byte {
-	return r.pos
+func (x Register) AsByte() byte {
+	return x.pos
 }
 
-func (r Register) AsUint16() uint16 {
-	return uint16(r.pos)
+func (x Register) AsUint16() uint16 {
+	return uint16(x.pos)
+}
+
+func (x Register) Name() string {
+	return x.name
 }
 
 var Ip = Register{
-	name: "Instruction Pointer",
-	pos:  15,
+	description: "Instruction Pointer",
+	name:        "Ip",
+	pos:         15,
 }
 
 var Ac = Register{
-	name: "Accumulator",
-	pos:  14,
+	description: "Accumulator",
+	name:        "Ac",
+	pos:         14,
 }
 
 var Sp = Register{
-	name: "Stack Pointer",
-	pos:  13,
+	description: "Stack Pointer",
+	name:        "Sp",
+	pos:         13,
 }
 
 var Fp = Register{
-	name: "Frame Pointer",
-	pos:  12,
+	description: "Frame Pointer",
+	name:        "Fp",
+	pos:         12,
 }
 
 var R1 = Register{
-	name: "Register #1",
-	pos:  0,
+	description: "Register #1",
+	name:        "R1",
+	pos:         0,
 }
 
 var R2 = Register{
-	name: "Register #2",
-	pos:  1,
+	description: "Register #2",
+	name:        "R2",
+	pos:         1,
 }
 
 var R3 = Register{
-	name: "Register #3",
-	pos:  2,
+	description: "Register #3",
+	name:        "R3",
+	pos:         2,
 }
 
 var R4 = Register{
-	name: "Register #4",
-	pos:  3,
+	description: "Register #4",
+	name:        "R4",
+	pos:         3,
 }
 
 var R5 = Register{
-	name: "Register #5",
-	pos:  4,
+	description: "Register #5",
+	name:        "R5",
+	pos:         4,
 }
 
 var R6 = Register{
-	name: "Register #6",
-	pos:  5,
+	description: "Register #6",
+	name:        "R6",
+	pos:         5,
 }
 
 var R7 = Register{
-	name: "Register #7",
-	pos:  6,
+	description: "Register #7",
+	name:        "R7",
+	pos:         6,
 }
 
 var R8 = Register{
-	name: "Register #8",
-	pos:  7,
+	description: "Register #8",
+	name:        "R8",
+	pos:         7,
 }
 
 func FromByte(b byte) (Register, error) {

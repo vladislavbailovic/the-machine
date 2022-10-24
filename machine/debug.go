@@ -47,16 +47,16 @@ func NewDebugger(vm *Machine, f Formatter) Debugger {
 	return Debugger{vm: vm, formatter: f}
 }
 
-func (x Debugger) CoreRegisters(number Representation) string {
+func (x Debugger) CoreRegisters() string {
 	return x.registers(map[string]register.Register{
 		"Ip": register.Ip,
 		"Ac": register.Ac,
 		"Sp": register.Sp,
 		"Fp": register.Fp,
-	}, number)
+	})
 }
 
-func (x Debugger) GeneralRegisters(number Representation) string {
+func (x Debugger) GeneralRegisters() string {
 	return x.registers(map[string]register.Register{
 		"R1": register.R1,
 		"R2": register.R2,
@@ -66,10 +66,10 @@ func (x Debugger) GeneralRegisters(number Representation) string {
 		"R6": register.R6,
 		"R7": register.R7,
 		"R8": register.R8,
-	}, number)
+	})
 }
 
-func (x Debugger) registers(registers map[string]register.Register, number Representation) string {
+func (x Debugger) registers(registers map[string]register.Register) string {
 	_, valFormat := x.formatter.getFormat()
 	positions := make([]string, len(registers))
 	values := make([]string, len(registers))

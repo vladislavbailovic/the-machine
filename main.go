@@ -77,8 +77,8 @@ func main() {
 	dbg := machine.NewDebugger(&vm, fmtr)
 	fmt.Println()
 	fmt.Println(dbg.Peek(0, 8, machine.ROM))
-	fmt.Println(dbg.CoreRegisters(machine.Binary))
-	fmt.Println(dbg.GeneralRegisters(machine.Binary))
+	fmt.Println(dbg.CoreRegisters())
+	fmt.Println(dbg.GeneralRegisters())
 }
 
 func outAll() {

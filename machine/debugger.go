@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"the-machine/machine/debug"
 	"the-machine/machine/memory"
 	"the-machine/machine/register"
 )
@@ -15,39 +16,17 @@ const (
 	ROM MemoryType = iota
 )
 
-type Resolution uint8
-
-const (
-	Byte Resolution = 0
-	Uint Resolution = iota
-)
-
-type Representation uint8
-
-const (
-	Binary  Representation = 0
-	Hex     Representation = iota
-	Decimal Representation = iota
-)
-
-type RenderingDirection uint8
-
-const (
-	Horizontal RenderingDirection = 0
-	Vertical   RenderingDirection = iota
-)
-
 type Debugger struct {
 	vm        *Machine
 	stream    io.Writer
-	formatter Formatter
+	formatter debug.Formatter
 }
 
-func NewDebugger(vm *Machine, f Formatter) *Debugger {
+func NewDebugger(vm *Machine, f debug.Formatter) *Debugger {
 	return &Debugger{vm: vm, formatter: f}
 }
 
-func (x *Debugger) SetFormatter(f Formatter) {
+func (x *Debugger) SetFormatter(f debug.Formatter) {
 	x.formatter = f
 }
 
@@ -91,7 +70,7 @@ func (x Debugger) AllRegisters() string {
 }
 
 func (x Debugger) registers(registers []register.Register) string {
-	_, valFormat := x.formatter.getFormat()
+	_, valFormat := x.formatter.GetFormat()
 	positions := make([]string, len(registers))
 	values := make([]string, len(registers))
 	for idx, register := range registers {
@@ -127,18 +106,18 @@ func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType
 }
 
 func (x Debugger) renderPosition(source memory.MemoryAccess, at memory.Address) (string, string) {
-	posFormat, valFormat := x.formatter.getFormat()
+	posFormat, valFormat := x.formatter.GetFormat()
 	position := fmt.Sprintf(posFormat, at)
 	var value string
 	switch x.formatter.OutputAs {
-	case Byte:
+	case debug.Byte:
 		if b, err := source.GetByte(at); err != nil {
 			x.out(fmt.Sprintf("ERROR: unable to access byte at %v: %v", at, err))
 			return position, fmt.Sprintf(strings.Repeat("", len(position)))
 		} else {
 			value = fmt.Sprintf(valFormat, b)
 		}
-	case Uint:
+	case debug.Uint:
 		if b, err := source.GetUint16(at); err != nil {
 			x.out(fmt.Sprintf("ERROR: unable to access uint at %v: %v", at, err))
 			return position, fmt.Sprintf(strings.Repeat("", len(position)))
@@ -157,79 +136,4 @@ func (x Debugger) renderPosition(source memory.MemoryAccess, at memory.Address) 
 
 func (x Debugger) out(msg string) {
 	fmt.Println(msg)
-}
-
-type Formatter struct {
-	Numbers   Representation
-	OutputAs  Resolution
-	Rendering RenderingDirection
-}
-
-func (x Formatter) getFormat() (string, string) {
-	posFormat := "%4d"
-	valFormat := "%#02x"
-	switch x.Numbers {
-	case Binary:
-		switch x.OutputAs {
-		case Byte:
-			posFormat = "%10d"
-			valFormat = "%#08b"
-		case Uint:
-			posFormat = "%18d"
-			valFormat = "%#016b"
-		}
-	case Decimal:
-		switch x.OutputAs {
-		case Byte:
-			posFormat = "%3d"
-			valFormat = "%3d"
-		case Uint:
-			posFormat = "%5d"
-			valFormat = "%05d"
-		}
-
-	}
-	return posFormat, valFormat
-}
-
-func (x Formatter) Stitch(first []string, rest ...[]string) string {
-	switch x.Rendering {
-	case Vertical:
-		return x.stitchCols(first, rest...)
-	case Horizontal:
-		return x.stitchRows(first, rest...)
-	default:
-		return fmt.Sprintf("ERROR: unknown rendering direction: %d", x.Rendering)
-	}
-	return ""
-}
-
-func (x Formatter) stitchRows(first []string, rest ...[]string) string {
-	out := make([]string, len(rest)+1)
-	out[0] = strings.Join(first, " ")
-	separator := strings.Repeat("-", len(out[0]))
-	for idx, item := range rest {
-		out[idx+1] = strings.Join(item, " ")
-	}
-	return strings.Join(out, fmt.Sprintf("\n%s\n", separator))
-}
-
-func (x Formatter) stitchCols(first []string, rest ...[]string) string {
-	cols := make([]string, len(rest)+1)
-	rows := make([]string, len(first))
-
-	for rowIdx, item := range first {
-		cols[0] = item
-		ln := len(item)
-		for colIdx, col := range rest {
-			if rowIdx < len(col) {
-				cols[colIdx+1] = col[rowIdx]
-				ln = len(col[rowIdx])
-			} else {
-				cols[colIdx+1] = strings.Repeat(" ", ln)
-			}
-		}
-		rows[rowIdx] = strings.Join(cols, " | ")
-	}
-	return strings.Join(rows, "\n")
 }

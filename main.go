@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"the-machine/machine"
+	"the-machine/machine/debug"
 	"the-machine/machine/device"
 	"the-machine/machine/instruction"
 	"the-machine/machine/register"
@@ -69,17 +70,17 @@ func main() {
 	))
 	run(vm)
 
-	fmtr := machine.Formatter{
-		Numbers:   machine.Binary,
-		OutputAs:  machine.Uint,
-		Rendering: machine.Vertical,
+	fmtr := debug.Formatter{
+		Numbers:   debug.Binary,
+		OutputAs:  debug.Uint,
+		Rendering: debug.Vertical,
 	}
 	dbg := machine.NewDebugger(&vm, fmtr)
 	fmt.Println()
 	fmt.Println(dbg.Peek(0, 8, machine.ROM))
 
-	fmtr.Numbers = machine.Decimal
-	fmtr.Rendering = machine.Horizontal
+	fmtr.Numbers = debug.Decimal
+	fmtr.Rendering = debug.Horizontal
 	dbg.SetFormatter(fmtr)
 	fmt.Println(dbg.AllRegisters())
 }

@@ -79,6 +79,7 @@ func main() {
 	fmt.Println(dbg.Peek(0, 8, machine.ROM))
 
 	fmtr.Numbers = machine.Decimal
+	fmtr.Rendering = machine.Horizontal
 	dbg.SetFormatter(fmtr)
 	fmt.Println(dbg.CoreRegisters())
 	fmt.Println(dbg.GeneralRegisters())

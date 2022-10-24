@@ -85,7 +85,7 @@ func (x Debugger) registers(registers map[string]register.Register) string {
 		positions[idx] = fmt.Sprintf(format, name)
 		idx++
 	}
-	return x.formatter.stitch(positions, values)
+	return x.formatter.Stitch(positions, values)
 }
 
 func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType) string {
@@ -107,7 +107,7 @@ func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType
 		positions[i], values[i] = x.renderPosition(source, memory.Address(pos))
 	}
 
-	return x.formatter.stitch(positions, values)
+	return x.formatter.Stitch(positions, values)
 }
 
 func (x Debugger) renderPosition(source memory.MemoryAccess, at memory.Address) (string, string) {
@@ -176,7 +176,7 @@ func (x Formatter) getFormat() (string, string) {
 	return posFormat, valFormat
 }
 
-func (x Formatter) stitch(first []string, rest ...[]string) string {
+func (x Formatter) Stitch(first []string, rest ...[]string) string {
 	switch x.Rendering {
 	case Vertical:
 		return x.stitchCols(first, rest...)

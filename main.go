@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"the-machine/machine"
 	"the-machine/machine/debug"
 	"the-machine/machine/device"
@@ -42,7 +43,7 @@ func run(vm machine.Machine) (int, error) {
 	return step, nil
 }
 
-func main() {
+func main3() {
 	vga := device.NewVideo()
 	vm := machine.NewWithMemory(vga, 1024)
 	setLimit := packSubroutine(
@@ -84,6 +85,37 @@ func main() {
 	fmtr.Rendering = debug.Horizontal
 	dbg.SetFormatter(fmtr)
 	fmt.Println(dbg.AllRegisters())
+
+	dbg.Dump()
+}
+
+func main() {
+	buffer, err := os.ReadFile("out.bin")
+	if err != nil {
+		panic(err)
+	}
+	vga := device.NewVideo()
+	vm := machine.NewWithMemory(vga, 1024)
+	vm.LoadProgram(0, buffer)
+
+	run(vm)
+
+	fmtr := debug.Formatter{
+		Numbers:   debug.Binary,
+		OutputAs:  debug.Byte,
+		Rendering: debug.Vertical,
+	}
+	dbg := machine.NewDebugger(&vm, fmtr)
+	fmt.Println()
+	fmt.Println(dbg.Peek(0, 8, machine.RAM))
+	fmt.Println(dbg.Disassemble(0, 4))
+
+	fmtr.Numbers = debug.Decimal
+	fmtr.Rendering = debug.Horizontal
+	dbg.SetFormatter(fmtr)
+	fmt.Println(dbg.AllRegisters())
+
+	fmt.Println("^ that was loaded o.0")
 }
 
 func outAll() {

@@ -168,6 +168,11 @@ func (x Debugger) renderPosition(source memory.MemoryAccess, at memory.Address) 
 	return position, value
 }
 
+func (x Debugger) Dump() error {
+	dumper := debug.NewDumper()
+	return dumper.Dump(x.vm.rom)
+}
+
 func (x Debugger) out(msg string) {
 	fmt.Println(msg)
 }

@@ -2,7 +2,6 @@ package machine
 
 import (
 	"fmt"
-	"io"
 	"the-machine/machine/debug"
 	"the-machine/machine/memory"
 	"the-machine/machine/register"
@@ -17,12 +16,48 @@ const (
 
 type Debugger struct {
 	vm       *Machine
-	stream   io.Writer
 	renderer *debug.Renderer
+	skin     *debug.Interface
 }
 
 func NewDebugger(vm *Machine, f debug.Formatter) *Debugger {
-	return &Debugger{vm: vm, renderer: debug.NewRenderer(f)}
+	return &Debugger{vm: vm, renderer: debug.NewRenderer(f), skin: debug.NewInterface()}
+}
+
+func (x Debugger) current() {
+	memPos := x.vm.cpu.GetRegister(register.Ip)
+	fmt.Println()
+	fmt.Println(x.Peek(0, 8, RAM))
+	fmt.Println(x.Disassemble(memory.Address(memPos), 4))
+	fmt.Println(x.AllRegisters())
+	fmt.Println()
+}
+
+func (x Debugger) Run() {
+	for true {
+		err := x.vm.Tick()
+		if err != nil {
+			x.out(fmt.Sprintf("ERROR: runtime error: %v", err))
+		}
+		if x.vm.IsDone() {
+			break
+		}
+		cmd, err := x.skin.GetCommand()
+		if err != nil {
+			x.out(fmt.Sprintf("ERROR: debugger error: %v", err))
+			continue
+		}
+		switch cmd.Action {
+		case debug.Tick:
+			continue
+		case debug.Step:
+			x.current()
+			continue
+		case debug.Quit:
+			break
+		}
+	}
+	fmt.Println("bye!")
 }
 
 func (x *Debugger) SetFormatter(f debug.Formatter) {

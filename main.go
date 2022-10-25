@@ -98,24 +98,23 @@ func main() {
 	vm := machine.NewWithMemory(vga, 1024)
 	vm.LoadProgram(0, buffer)
 
-	run(vm)
-
 	fmtr := debug.Formatter{
 		Numbers:   debug.Binary,
 		OutputAs:  debug.Byte,
 		Rendering: debug.Vertical,
 	}
 	dbg := machine.NewDebugger(&vm, fmtr)
-	fmt.Println()
-	fmt.Println(dbg.Peek(0, 8, machine.RAM))
-	fmt.Println(dbg.Disassemble(0, 4))
+	dbg.Run()
+	// fmt.Println()
+	// fmt.Println(dbg.Peek(0, 8, machine.RAM))
+	// fmt.Println(dbg.Disassemble(0, 4))
 
-	fmtr.Numbers = debug.Decimal
-	fmtr.Rendering = debug.Horizontal
-	dbg.SetFormatter(fmtr)
-	fmt.Println(dbg.AllRegisters())
+	// fmtr.Numbers = debug.Decimal
+	// fmtr.Rendering = debug.Horizontal
+	// dbg.SetFormatter(fmtr)
+	// fmt.Println(dbg.AllRegisters())
 
-	fmt.Println("^ that was loaded o.0")
+	// fmt.Println("^ that was loaded o.0")
 }
 
 func outAll() {

@@ -2,6 +2,7 @@ package debug
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"the-machine/machine/memory"
 )
@@ -34,5 +35,6 @@ func (x Dumper) Dump(mem memory.MemoryAccess) error {
 		idx++
 	}
 
+	fmt.Printf("\t- Dump memory content to %s\n", x.fname)
 	return buffer.Flush()
 }

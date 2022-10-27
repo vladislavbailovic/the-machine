@@ -50,7 +50,11 @@ func (x Interface) parseCommand(input string) (Command, error) {
 	case "p":
 		return Command{Action: PeekRom}, nil
 	case "d":
-		return Command{Action: Disassemble}, nil
+		if len(input) > 3 && input[:4] == "dump" {
+			return Command{Action: Dump}, nil
+		} else {
+			return Command{Action: Disassemble}, nil
+		}
 	case "r":
 		return Command{Action: Registers}, nil
 	case "i":

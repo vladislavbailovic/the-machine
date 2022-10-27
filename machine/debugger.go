@@ -86,6 +86,7 @@ func (x Debugger) Run() {
 		}
 		switch cmd.Action {
 		case debug.Tick:
+			fmt.Println()
 			continue
 		case debug.Step:
 			x.current()
@@ -109,6 +110,9 @@ func (x Debugger) Run() {
 		case debug.Registers:
 			x.currentRegisters()
 			doTick = false
+			continue
+		case debug.Dump:
+			x.Dump()
 			continue
 		case debug.Quit:
 			break

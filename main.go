@@ -43,9 +43,8 @@ func run(vm machine.Machine) (int, error) {
 	return step, nil
 }
 
-func main3() {
-	vga := device.NewVideo()
-	vm := machine.NewWithMemory(vga, 1024)
+func main() {
+	vm := machine.NewMachine(0xffff)
 	setLimit := packSubroutine(
 		instruction.PUSH_LIT.Pack(1023),
 		instruction.PUSH_LIT.Pack(17),
@@ -61,15 +60,14 @@ func main3() {
 		instruction.PUSH_LIT.Pack(500),
 		instruction.POP_REG.Pack(register.R4.AsUint16()), // R4 = 500 (subroutine address)
 		instruction.CALL.Pack(register.R4.AsUint16()),
-		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R2.AsUint16()), // R2 = 17920 (limit)
+		instruction.MOV_REG_REG.Pack(register.Ac.AsUint16(), register.R2.AsUint16()), // R2 = 17850 (limit)
 		instruction.PUSH_LIT.Pack(9*2),
 		instruction.POP_REG.Pack(register.R3.AsUint16()),                             // R3 = 18 (jump address-1) *2
 		instruction.MOV_REG_REG.Pack(register.R8.AsUint16(), register.Ac.AsUint16()), // Ac = 0
-		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),                         // Draw
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),                         // Fake-Draw
 		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), 1),                      // Ac++
 		instruction.JLT.Pack(register.R2.AsUint16(), register.R3.AsUint16()),         // If Ac < R2, jump to R3
 	))
-	run(vm)
 
 	fmtr := debug.Formatter{
 		Numbers:   debug.Binary,
@@ -77,19 +75,13 @@ func main3() {
 		Rendering: debug.Vertical,
 	}
 	dbg := machine.NewDebugger(&vm, fmtr)
-	fmt.Println()
-	fmt.Println(dbg.Peek(0, 8, machine.RAM))
-	fmt.Println(dbg.Disassemble(0, 12))
 
-	fmtr.Numbers = debug.Decimal
-	fmtr.Rendering = debug.Horizontal
-	dbg.SetFormatter(fmtr)
-	fmt.Println(dbg.AllRegisters())
+	dbg.Run()
 
-	dbg.Dump()
+	// dbg.Dump()
 }
 
-func main() {
+func loadFromBuffer_Vga() {
 	buffer, err := os.ReadFile("out.bin")
 	if err != nil {
 		panic(err)

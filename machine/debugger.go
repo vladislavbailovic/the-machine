@@ -51,7 +51,15 @@ func (x Debugger) currentDisassembly() {
 
 func (x Debugger) currentRegisters() {
 	fmt.Println("[ Registers ]")
+	old := x.renderer.GetFormatter()
+	f := debug.Formatter{
+		Numbers:   debug.Decimal,
+		OutputAs:  debug.Uint,
+		Rendering: debug.Horizontal,
+	}
+	x.renderer.SetFormatter(f)
 	fmt.Println(x.AllRegisters())
+	x.renderer.SetFormatter(old)
 }
 
 func (x Debugger) Run() {
@@ -169,7 +177,7 @@ func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType
 
 func (x Debugger) Disassemble(startAt memory.Address, outputLen int) string {
 	source := x.vm.rom
-	return x.renderer.Disassembly(source, x.vm.decode, startAt, outputLen)
+	return x.renderer.Disassembly(source, startAt, outputLen)
 }
 
 func (x Debugger) Dump() error {

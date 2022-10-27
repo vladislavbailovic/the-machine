@@ -21,6 +21,10 @@ func (x *Renderer) SetFormatter(f Formatter) {
 	x.formatter = f
 }
 
+func (x Renderer) GetFormatter() Formatter {
+	return x.formatter
+}
+
 func (x Renderer) Registers(cpu *cpu.Cpu, registers []register.Register) string {
 	_, valFormat := x.formatter.GetFormat()
 	positions := make([]string, len(registers))
@@ -79,9 +83,22 @@ func (x Renderer) memoryAt(source memory.MemoryAccess, at memory.Address) (strin
 	return position, value
 }
 
-type decoder func(uint16) (instruction.Instruction, error)
+func (x Renderer) decodeInstruction(instr uint16) (instruction.Instruction, error) {
+	kind, raw := instruction.Decode(instr)
+	if kind == instruction.HALT {
+		return instruction.Descriptors[instruction.NOP], nil
+	}
 
-func (x Renderer) Disassembly(source memory.MemoryAccess, decode decoder, startAt memory.Address, outputLen int) string {
+	decoded, ok := instruction.Descriptors[kind]
+	if !ok {
+		return instruction.Descriptors[instruction.NOP], fmt.Errorf("unknown instruction: %#02x", instr)
+	}
+
+	decoded.Raw = raw
+	return decoded, nil
+}
+
+func (x Renderer) Disassembly(source memory.MemoryAccess, startAt memory.Address, outputLen int) string {
 	x.formatter.OutputAs = Uint // Required for disassembly
 
 	positions := make([]string, outputLen, outputLen)
@@ -96,7 +113,7 @@ func (x Renderer) Disassembly(source memory.MemoryAccess, decode decoder, startA
 			if b, err := source.GetUint16(memory.Address(pos)); err != nil {
 				x.out(fmt.Sprintf("ERROR: unable to access uint at %v: %v", pos, err))
 			} else {
-				decoded, err := decode(b)
+				decoded, err := x.decodeInstruction(b)
 				if err != nil {
 					x.out(fmt.Sprintf("ERROR: unable to disassemble at %d: %d: %v", pos, b, err))
 				} else {

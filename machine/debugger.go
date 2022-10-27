@@ -26,9 +26,13 @@ func NewDebugger(vm *Machine, f debug.Formatter) *Debugger {
 
 func (x Debugger) current() {
 	memPos := x.vm.cpu.GetRegister(register.Ip)
+
 	fmt.Println()
+	fmt.Println("[ Memory ]")
 	fmt.Println(x.Peek(0, 8, RAM))
+	fmt.Println("[ Disassembly ]")
 	fmt.Println(x.Disassemble(memory.Address(memPos), 4))
+	fmt.Println("[ Registers ]")
 	fmt.Println(x.AllRegisters())
 	fmt.Println()
 }

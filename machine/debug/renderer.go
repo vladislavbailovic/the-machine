@@ -26,6 +26,8 @@ func (x Renderer) GetFormatter() Formatter {
 }
 
 func (x Renderer) Registers(cpu *cpu.Cpu, registers []register.Register) string {
+	x.formatter.OutputAs = Uint // Registers are always uints
+
 	_, valFormat := x.formatter.GetFormat()
 	positions := make([]string, len(registers))
 	values := make([]string, len(registers))

@@ -25,30 +25,51 @@ func NewDebugger(vm *Machine, f debug.Formatter) *Debugger {
 }
 
 func (x Debugger) current() {
-	memPos := x.vm.cpu.GetRegister(register.Ip)
-
 	fmt.Println()
-	fmt.Println("[ Memory ]")
-	fmt.Println(x.Peek(0, 8, RAM))
-	fmt.Println("[ Disassembly ]")
-	fmt.Println(x.Disassemble(memory.Address(memPos), 4))
-	fmt.Println("[ Registers ]")
-	fmt.Println(x.AllRegisters())
+	x.currentRam()
+	x.currentDisassembly()
+	x.currentRegisters()
 	fmt.Println()
 }
 
+func (x Debugger) currentRam() {
+	fmt.Println("[ Memory ]")
+	fmt.Println(x.Peek(0, 8, RAM))
+}
+
+func (x Debugger) currentRom() {
+	memPos := x.vm.cpu.GetRegister(register.Ip)
+	fmt.Println("[ Program ]")
+	fmt.Println(x.Peek(memory.Address(memPos), 8, ROM))
+}
+
+func (x Debugger) currentDisassembly() {
+	memPos := x.vm.cpu.GetRegister(register.Ip)
+	fmt.Println("[ Disassembly ]")
+	fmt.Println(x.Disassemble(memory.Address(memPos), 4))
+}
+
+func (x Debugger) currentRegisters() {
+	fmt.Println("[ Registers ]")
+	fmt.Println(x.AllRegisters())
+}
+
 func (x Debugger) Run() {
+	doTick := false
 	ticks := 0
 	for true {
-		err := x.vm.Tick()
-		if err != nil {
-			x.out(fmt.Sprintf("ERROR: runtime error: %v", err))
-		} else {
-			ticks++
+		if doTick {
+			err := x.vm.Tick()
+			if err != nil {
+				x.out(fmt.Sprintf("ERROR: runtime error: %v", err))
+			} else {
+				ticks++
+			}
+			if x.vm.IsDone() {
+				break
+			}
 		}
-		if x.vm.IsDone() {
-			break
-		}
+		doTick = true
 		x.skin.Prompt(ticks)
 		cmd, err := x.skin.GetCommand()
 		if err != nil {
@@ -60,6 +81,26 @@ func (x Debugger) Run() {
 			continue
 		case debug.Step:
 			x.current()
+			continue
+		case debug.Inspect:
+			x.current()
+			doTick = false
+			continue
+		case debug.PeekRam:
+			x.currentRam()
+			doTick = false
+			continue
+		case debug.PeekRom:
+			x.currentRom()
+			doTick = false
+			continue
+		case debug.Disassemble:
+			x.currentDisassembly()
+			doTick = false
+			continue
+		case debug.Registers:
+			x.currentRegisters()
+			doTick = false
 			continue
 		case debug.Quit:
 			break

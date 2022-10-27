@@ -7,6 +7,7 @@ type Action uint8
 const (
 	Tick        Action = 0
 	Step        Action = iota
+	Inspect     Action = iota
 	PeekRam     Action = iota
 	PeekRom     Action = iota
 	Registers   Action = iota
@@ -44,6 +45,16 @@ func (x Interface) parseCommand(input string) (Command, error) {
 		return Command{Action: Quit}, nil
 	case "s":
 		return Command{Action: Step}, nil
+	case "m":
+		return Command{Action: PeekRam}, nil
+	case "p":
+		return Command{Action: PeekRom}, nil
+	case "d":
+		return Command{Action: Disassemble}, nil
+	case "r":
+		return Command{Action: Registers}, nil
+	case "i":
+		return Command{Action: Inspect}, nil
 	}
 	fmt.Printf("Got input: [%s]", input)
 	return Command{}, fmt.Errorf("ERROR: unable to parse command")

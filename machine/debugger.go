@@ -25,32 +25,32 @@ func NewDebugger(vm *Machine, f debug.Formatter) *Debugger {
 }
 
 func (x Debugger) current() {
-	fmt.Println()
+	x.renderer.Out("")
 	x.currentRam()
 	x.currentDisassembly()
 	x.currentRegisters()
-	fmt.Println()
+	x.renderer.Out("")
 }
 
 func (x Debugger) currentRam() {
-	fmt.Println("[ Memory ]")
-	fmt.Println(x.Peek(0, 8, RAM))
+	x.renderer.Out("[ Memory ]")
+	x.renderer.Out(x.Peek(0, 8, RAM))
 }
 
 func (x Debugger) currentRom() {
 	memPos := x.vm.cpu.GetRegister(register.Ip)
-	fmt.Println("[ Program ]")
-	fmt.Println(x.Peek(memory.Address(memPos), 8, ROM))
+	x.renderer.Out("[ Program ]")
+	x.renderer.Out(x.Peek(memory.Address(memPos), 8, ROM))
 }
 
 func (x Debugger) currentDisassembly() {
 	memPos := x.vm.cpu.GetRegister(register.Ip)
-	fmt.Println("[ Disassembly ]")
-	fmt.Println(x.Disassemble(memory.Address(memPos), 4))
+	x.renderer.Out("[ Disassembly ]")
+	x.renderer.Out(x.Disassemble(memory.Address(memPos), 4))
 }
 
 func (x Debugger) currentRegisters() {
-	fmt.Println("[ Registers ]")
+	x.renderer.Out("[ Registers ]")
 	old := x.renderer.GetFormatter()
 	f := debug.Formatter{
 		Numbers:   debug.Decimal,
@@ -58,7 +58,7 @@ func (x Debugger) currentRegisters() {
 		Rendering: debug.Horizontal,
 	}
 	x.renderer.SetFormatter(f)
-	fmt.Println(x.AllRegisters())
+	x.renderer.Out(x.AllRegisters())
 	x.renderer.SetFormatter(old)
 }
 
@@ -69,7 +69,7 @@ func (x Debugger) Run() {
 		if doTick {
 			err := x.vm.Tick()
 			if err != nil {
-				x.out(fmt.Sprintf("ERROR: runtime error: %v", err))
+				x.renderer.Out(fmt.Sprintf("ERROR: runtime error: %v", err))
 			} else {
 				ticks++
 			}
@@ -81,12 +81,12 @@ func (x Debugger) Run() {
 		x.skin.Prompt(ticks)
 		cmd, err := x.skin.GetCommand()
 		if err != nil {
-			x.out(fmt.Sprintf("ERROR: debugger error: %v", err))
+			x.renderer.Out(fmt.Sprintf("ERROR: debugger error: %v", err))
 			continue
 		}
 		switch cmd.Action {
 		case debug.Tick:
-			fmt.Println()
+			x.renderer.Out("")
 			continue
 		case debug.Step:
 			x.current()
@@ -118,7 +118,7 @@ func (x Debugger) Run() {
 			break
 		}
 	}
-	fmt.Println("bye!")
+	x.renderer.Out("bye!")
 }
 
 func (x *Debugger) SetFormatter(f debug.Formatter) {
@@ -172,7 +172,7 @@ func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType
 	case ROM:
 		source = x.vm.rom
 	default:
-		x.out(fmt.Sprintf("ERROR: unknown source type: %v", srcType))
+		x.renderer.Out(fmt.Sprintf("ERROR: unknown source type: %v", srcType))
 		return ""
 	}
 
@@ -187,9 +187,4 @@ func (x Debugger) Disassemble(startAt memory.Address, outputLen int) string {
 func (x Debugger) Dump() error {
 	dumper := debug.NewDumper()
 	return dumper.Dump(x.vm.rom)
-}
-
-// TODO: figure this out
-func (x Debugger) out(msg string) {
-	fmt.Println(msg)
 }

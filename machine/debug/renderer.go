@@ -60,14 +60,14 @@ func (x Renderer) memoryAt(source memory.MemoryAccess, at memory.Address) (strin
 		switch x.formatter.OutputAs {
 		case Byte:
 			if b, err := source.GetByte(at); err != nil {
-				x.out(fmt.Sprintf("ERROR: unable to access byte at %v: %v", at, err))
+				x.Out(fmt.Sprintf("ERROR: unable to access byte at %v: %v", at, err))
 				return position, fmt.Sprintf(strings.Repeat("", len(position)))
 			} else {
 				value = fmt.Sprintf(valFormat, b)
 			}
 		case Uint:
 			if b, err := source.GetUint16(at); err != nil {
-				x.out(fmt.Sprintf("ERROR: unable to access uint at %v: %v", at, err))
+				x.Out(fmt.Sprintf("ERROR: unable to access uint at %v: %v", at, err))
 				return position, fmt.Sprintf(strings.Repeat("", len(position)))
 			} else {
 				value = fmt.Sprintf(valFormat, b)
@@ -111,11 +111,11 @@ func (x Renderer) Disassembly(source memory.MemoryAccess, startAt memory.Address
 		instr := strings.Repeat(" ", len(positions[i]))
 		if i%2 == 0 {
 			if b, err := source.GetUint16(memory.Address(pos)); err != nil {
-				x.out(fmt.Sprintf("ERROR: unable to access uint at %v: %v", pos, err))
+				x.Out(fmt.Sprintf("ERROR: unable to access uint at %v: %v", pos, err))
 			} else {
 				decoded, err := x.decodeInstruction(b)
 				if err != nil {
-					x.out(fmt.Sprintf("ERROR: unable to disassemble at %d: %d: %v", pos, b, err))
+					x.Out(fmt.Sprintf("ERROR: unable to disassemble at %d: %d: %v", pos, b, err))
 				} else {
 					instr = fmt.Sprintf("%v :: %v (%#010b)", decoded, decoded.Raw, decoded.Raw)
 				}
@@ -128,6 +128,6 @@ func (x Renderer) Disassembly(source memory.MemoryAccess, startAt memory.Address
 }
 
 // TODO: figure this out
-func (x Renderer) out(msg string) {
+func (x Renderer) Out(msg string) {
 	fmt.Println(msg)
 }

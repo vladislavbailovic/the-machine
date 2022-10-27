@@ -34,14 +34,18 @@ func (x Debugger) current() {
 }
 
 func (x Debugger) Run() {
+	ticks := 0
 	for true {
 		err := x.vm.Tick()
 		if err != nil {
 			x.out(fmt.Sprintf("ERROR: runtime error: %v", err))
+		} else {
+			ticks++
 		}
 		if x.vm.IsDone() {
 			break
 		}
+		x.skin.Prompt(ticks)
 		cmd, err := x.skin.GetCommand()
 		if err != nil {
 			x.out(fmt.Sprintf("ERROR: debugger error: %v", err))

@@ -25,6 +25,10 @@ func NewInterface() *Interface {
 	return &Interface{}
 }
 
+func (x Interface) Prompt(ticks int) {
+	fmt.Printf("[tick: %d] > ", ticks)
+}
+
 func (x Interface) GetCommand() (Command, error) {
 	var input string
 	fmt.Scanln(&input)

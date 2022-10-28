@@ -34,14 +34,21 @@ func (x Debugger) Current() {
 }
 
 func (x Debugger) currentRam() {
+	x.ramAt(0, 8)
+}
+
+func (x Debugger) ramAt(memPos memory.Address, length int) {
 	x.renderer.Out("[ Memory ]")
-	x.renderer.Out(x.Peek(0, 8, RAM))
+	x.renderer.Out(x.Peek(memPos, length, RAM))
 }
 
 func (x Debugger) currentRom() {
 	memPos := x.vm.cpu.GetRegister(register.Ip)
+	x.romAt(memory.Address(memPos), 8)
+}
+func (x Debugger) romAt(memPos memory.Address, length int) {
 	x.renderer.Out("[ Program ]")
-	x.renderer.Out(x.Peek(memory.Address(memPos), 8, ROM))
+	x.renderer.Out(x.Peek(memPos, length, ROM))
 }
 
 func (x Debugger) currentStack() {
@@ -52,8 +59,11 @@ func (x Debugger) currentStack() {
 
 func (x Debugger) currentDisassembly() {
 	memPos := x.vm.cpu.GetRegister(register.Ip)
+	x.disassemblyAt(memory.Address(memPos), 4)
+}
+func (x Debugger) disassemblyAt(memPos memory.Address, length int) {
 	x.renderer.Out("[ Disassembly ]")
-	x.renderer.Out(x.Disassemble(memory.Address(memPos), 4))
+	x.renderer.Out(x.Disassemble(memory.Address(memPos), length))
 }
 
 func (x Debugger) currentRegisters() {
@@ -91,7 +101,7 @@ func (x Debugger) Run() {
 			x.renderer.OutError("debugger error", err)
 			continue
 		}
-		switch cmd.Action {
+		switch cmd.GetAction() {
 		case debug.Tick:
 			x.renderer.Out("")
 			continue
@@ -103,11 +113,19 @@ func (x Debugger) Run() {
 			doTick = false
 			continue
 		case debug.PeekRam:
-			x.currentRam()
+			if peek, ok := cmd.(debug.PeekCommand); ok {
+				x.ramAt(peek.At, peek.Length)
+			} else {
+				x.currentRam()
+			}
 			doTick = false
 			continue
 		case debug.PeekRom:
-			x.currentRom()
+			if peek, ok := cmd.(debug.PeekCommand); ok {
+				x.romAt(peek.At, peek.Length)
+			} else {
+				x.currentRom()
+			}
 			doTick = false
 			continue
 		case debug.Stack:
@@ -115,7 +133,11 @@ func (x Debugger) Run() {
 			doTick = false
 			continue
 		case debug.Disassemble:
-			x.currentDisassembly()
+			if peek, ok := cmd.(debug.PeekCommand); ok {
+				x.disassemblyAt(peek.At, peek.Length)
+			} else {
+				x.currentDisassembly()
+			}
 			doTick = false
 			continue
 		case debug.Registers:

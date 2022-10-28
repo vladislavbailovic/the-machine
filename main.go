@@ -71,7 +71,8 @@ func main() {
 		instruction.JLT.Pack(register.R2.AsUint16(), register.R3.AsUint16()),         // If Ac < R2, jump to R3
 	))
 
-	run(vm)
+	// run(vm)
+	vm.Debug()
 }
 
 func loadFromBuffer_Vga() {

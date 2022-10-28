@@ -1,5 +1,7 @@
 package instruction
 
+import "fmt"
+
 // Actually 6 bits = 64 instructions max
 type Type byte
 
@@ -139,6 +141,32 @@ const (
 	OpXor Op = iota
 )
 
+func (x Op) String() string {
+	switch x {
+	case OpAdd:
+		return "+"
+	case OpSub:
+		return "-"
+	case OpMul:
+		return "*"
+	case OpDiv:
+		return "/"
+	case OpMod:
+		return "%"
+	case OpShl:
+		return "<<"
+	case OpShr:
+		return ">>"
+	case OpAnd:
+		return "&"
+	case OpOr:
+		return "|"
+	case OpXor:
+		return "^"
+	}
+	return fmt.Sprintf("unknown operator: %d", x)
+}
+
 type Comparison byte
 
 const (
@@ -149,3 +177,21 @@ const (
 	CompLe Comparison = iota
 	CompLt Comparison = iota
 )
+
+func (x Comparison) String() string {
+	switch x {
+	case CompNe:
+		return "!="
+	case CompEq:
+		return "=="
+	case CompGt:
+		return ">"
+	case CompGe:
+		return ">="
+	case CompLt:
+		return "<"
+	case CompLe:
+		return "<="
+	}
+	return fmt.Sprintf("unknown comparision: %d", x)
+}

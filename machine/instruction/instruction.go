@@ -20,3 +20,13 @@ func (x Instruction) Execute(cpu *cpu.Cpu, memory memory.MemoryAccess) error {
 	}
 	return nil
 }
+
+func (x Instruction) String() string {
+	ex := x.Executor.String()
+	if ex != "" {
+		ex = " (" + ex + ") "
+	} else {
+		ex = ": "
+	}
+	return fmt.Sprintf("%s%s%d", x.Description, ex, x.Raw)
+}

@@ -10,6 +10,7 @@ import (
 
 type Executor interface {
 	Execute(uint16, *cpu.Cpu, memory.MemoryAccess) error
+	String() string
 }
 
 type Passthrough struct{}
@@ -18,8 +19,14 @@ func (x Passthrough) Execute(_ uint16, _ *cpu.Cpu, _ memory.MemoryAccess) error 
 	return nil
 }
 
+func (x Passthrough) String() string { return "" }
+
 type Lit2Reg struct {
 	Target register.Register
+}
+
+func (x Lit2Reg) String() string {
+	return fmt.Sprintf("Literal to register %s", x.Target)
 }
 
 func (x Lit2Reg) Execute(value uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
@@ -28,6 +35,8 @@ func (x Lit2Reg) Execute(value uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) er
 }
 
 type Reg2Reg struct{ unpacker }
+
+func (x Reg2Reg) String() string { return "" }
 
 func (x Reg2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	params := x.unpack(raw)
@@ -49,6 +58,8 @@ func (x Reg2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) erro
 
 type Reg2Stack struct{}
 
+func (x Reg2Stack) String() string { return "" }
+
 func (x Reg2Stack) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	source, err := register.FromByte(byte(raw))
 	if err != nil {
@@ -61,11 +72,15 @@ func (x Reg2Stack) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) er
 
 type Lit2Stack struct{}
 
+func (x Lit2Stack) String() string { return "" }
+
 func (x Lit2Stack) Execute(value uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	return cpu.Push(value)
 }
 
 type Stack2Reg struct{}
+
+func (x Stack2Reg) String() string { return "" }
 
 func (x Stack2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	destination, err := register.FromByte(byte(raw))
@@ -84,6 +99,8 @@ func (x Stack2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) er
 
 type Ac2Reg struct{}
 
+func (x Ac2Reg) String() string { return "" }
+
 func (x Ac2Reg) Execute(params uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	value := cpu.GetRegister(register.Ac)
 
@@ -98,6 +115,8 @@ func (x Ac2Reg) Execute(params uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) er
 
 type Reg2Mem struct{}
 
+func (x Reg2Mem) String() string { return "" }
+
 func (x Reg2Mem) Execute(params uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	r1, err := register.FromByte(byte(params))
 	if err != nil {
@@ -111,12 +130,16 @@ func (x Reg2Mem) Execute(params uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) e
 
 type Lit2Mem struct{}
 
+func (x Lit2Mem) String() string { return "" }
+
 func (x Lit2Mem) Execute(value uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	address := memory.Address(cpu.GetRegister(register.Ac))
 	return mem.SetUint16(address, value)
 }
 
 type Mem2Reg struct{ unpacker }
+
+func (x Mem2Reg) String() string { return "" }
 
 func (x Mem2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	params := x.unpack(raw)
@@ -144,6 +167,10 @@ func (x Mem2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) erro
 type OperateReg struct {
 	unpacker
 	Operation Op
+}
+
+func (x OperateReg) String() string {
+	return fmt.Sprintf("Operation: %s", x.Operation)
 }
 
 func (x OperateReg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
@@ -192,6 +219,10 @@ func (x OperateReg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) e
 type OperateRegLit struct {
 	unpacker
 	Operation Op
+}
+
+func (x OperateRegLit) String() string {
+	return fmt.Sprintf("Operation: %s", x.Operation)
 }
 
 func (x OperateRegLit) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
@@ -245,6 +276,10 @@ type OperateStack struct {
 	Operation Op
 }
 
+func (x OperateStack) String() string {
+	return fmt.Sprintf("Operation: %s", x.Operation)
+}
+
 func (x OperateStack) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	operand1, err := cpu.Pop()
 	if err != nil {
@@ -279,6 +314,10 @@ func (x OperateStack) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess)
 type Jump struct {
 	unpacker
 	Comparison Comparison
+}
+
+func (x Jump) String() string {
+	return fmt.Sprintf("Jump if: %s", x.Comparison)
 }
 
 func (x Jump) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
@@ -341,7 +380,11 @@ func (x Jump) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 
 type Halt struct{ Passthrough }
 
+func (x Halt) String() string { return "" }
+
 type Call struct{}
+
+func (x Call) String() string { return "" }
 
 func (x Call) Execute(raw uint16, cpu *cpu.Cpu, _ memory.MemoryAccess) error {
 	reg, err := register.FromByte(byte(raw))
@@ -360,6 +403,8 @@ func (x Call) Execute(raw uint16, cpu *cpu.Cpu, _ memory.MemoryAccess) error {
 }
 
 type Return struct{}
+
+func (x Return) String() string { return "" }
 
 func (x Return) Execute(_ uint16, cpu *cpu.Cpu, _ memory.MemoryAccess) error {
 	if err := cpu.RestoreFrame(); err != nil {

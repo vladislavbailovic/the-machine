@@ -47,6 +47,12 @@ func NewMachine(memsize int) Machine {
 	}
 }
 
+func (vm *Machine) Reset() {
+	vm.cpu.Reset()
+	vm.status = Ready
+	vm.cycle = Idle
+}
+
 func NewWithMemory(mem memory.MemoryAccess, ramSize int) Machine {
 	return Machine{
 		cpu:    cpu.NewCpu(),

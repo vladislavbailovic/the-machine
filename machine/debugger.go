@@ -76,20 +76,18 @@ func (x Debugger) Run() {
 		if doTick {
 			err := x.vm.Tick()
 			if err != nil {
-				// x.renderer.OutError(fmt.Sprintf("ERROR: runtime error: %v", err))
 				x.renderer.OutError("runtime error", err)
 			} else {
 				ticks++
-			}
-			if x.vm.IsDone() {
-				break
+				if x.vm.IsDone() {
+					break
+				}
 			}
 		}
 		doTick = true
 		x.skin.Prompt(ticks, x.vm.cpu.GetRegister(register.Ip))
 		cmd, err := x.skin.GetCommand()
 		if err != nil {
-			// x.renderer.OutError(fmt.Sprintf("ERROR: debugger error: %v", err))
 			x.renderer.OutError("debugger error", err)
 			continue
 		}
@@ -126,6 +124,11 @@ func (x Debugger) Run() {
 			continue
 		case debug.Dump:
 			x.Dump()
+			doTick = false
+			continue
+		case debug.Reset:
+			x.vm.Reset()
+			doTick = false
 			continue
 		case debug.Quit:
 			break

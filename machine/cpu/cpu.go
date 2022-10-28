@@ -33,6 +33,21 @@ func NewCpu() *Cpu {
 	return &Cpu{registers: registers, stack: mem}
 }
 
+func (cpu *Cpu) Reset() {
+	cpu.ip = 0
+	cpu.sp = 0
+	cpu.fp = 0
+	cpu.ac = 0
+	cpu.registers[register.R1] = 0
+	cpu.registers[register.R2] = 0
+	cpu.registers[register.R3] = 0
+	cpu.registers[register.R4] = 0
+	cpu.registers[register.R5] = 0
+	cpu.registers[register.R6] = 0
+	cpu.registers[register.R7] = 0
+	cpu.registers[register.R8] = 0
+}
+
 func (cpu Cpu) GetRegister(r register.Register) uint16 {
 	switch r {
 	case register.Ip:

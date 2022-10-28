@@ -17,6 +17,7 @@ const (
 	Disassemble Action = iota
 	Stack       Action = iota
 	Dump        Action = iota
+	Reset       Action = iota
 	Quit        Action = iota
 )
 
@@ -62,7 +63,11 @@ func (x Interface) parseCommand(input string) (Command, error) {
 			return Command{Action: Disassemble}, nil
 		}
 	case "r":
-		return Command{Action: Registers}, nil
+		if len(input) > 4 && input[:5] == "reset" {
+			return Command{Action: Reset}, nil
+		} else {
+			return Command{Action: Registers}, nil
+		}
 	case "i":
 		return Command{Action: Inspect}, nil
 	}

@@ -1,6 +1,9 @@
 package debug
 
-import "fmt"
+import (
+	"fmt"
+	"the-machine/machine/internal"
+)
 
 type Action uint8
 
@@ -64,5 +67,5 @@ func (x Interface) parseCommand(input string) (Command, error) {
 		return Command{Action: Inspect}, nil
 	}
 	fmt.Printf("Got input: [%s]", input)
-	return Command{}, fmt.Errorf("ERROR: unable to parse command")
+	return Command{}, internal.Error(fmt.Sprintf("ERROR: unable to parse command"), nil)
 }

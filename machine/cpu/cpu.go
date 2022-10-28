@@ -2,6 +2,7 @@ package cpu
 
 import (
 	"fmt"
+	"the-machine/machine/internal"
 	"the-machine/machine/memory"
 	"the-machine/machine/register"
 )
@@ -69,11 +70,11 @@ func (cpu *Cpu) Push(value uint16) error {
 	address := cpu.GetRegister(register.Sp)
 	address += 2
 	if address >= stackSize {
-		return fmt.Errorf("stack overflow, unable to push %d (%#02x) to %d (%#02x)", value, value, address, address)
+		return internal.Error(fmt.Sprintf("stack overflow, unable to push %d (%#02x) to %d (%#02x)", value, value, address, address), nil)
 	}
 
 	if err := cpu.stack.SetUint16(memory.Address(address), value); err != nil {
-		return fmt.Errorf("stack overflow: %w", err)
+		return internal.Error("stack overflow", err)
 	}
 	cpu.stackSize++
 	cpu.SetRegister(register.Sp, address)
@@ -83,12 +84,12 @@ func (cpu *Cpu) Push(value uint16) error {
 func (cpu *Cpu) Pop() (uint16, error) {
 	address := cpu.GetRegister(register.Sp)
 	if address < 2 {
-		return 0, fmt.Errorf("stack underflow, unable to pop from %d (%#02x))", address, address)
+		return 0, internal.Error(fmt.Sprintf("stack underflow, unable to pop from %d (%#02x))", address, address), nil)
 	}
 
 	value, err := cpu.stack.GetUint16(memory.Address(address))
 	if err != nil {
-		return value, fmt.Errorf("stack underflow: %w", err)
+		return value, internal.Error("stack underflow", err)
 	}
 	cpu.stackSize--
 	cpu.SetRegister(register.Sp, address-2)
@@ -99,22 +100,22 @@ func (cpu *Cpu) StoreFrame() error {
 	stackHead := uint16(cpu.stackSize)
 
 	if err := cpu.Push(cpu.GetRegister(register.R1)); err != nil {
-		return fmt.Errorf("error storing register R1: %w", err)
+		return internal.Error("error storing register R1", err)
 	}
 	if err := cpu.Push(cpu.GetRegister(register.R2)); err != nil {
-		return fmt.Errorf("error storing register R2: %w", err)
+		return internal.Error("error storing register R2", err)
 	}
 	if err := cpu.Push(cpu.GetRegister(register.R3)); err != nil {
-		return fmt.Errorf("error storing register R3: %w", err)
+		return internal.Error("error storing register R3", err)
 	}
 	if err := cpu.Push(cpu.GetRegister(register.R4)); err != nil {
-		return fmt.Errorf("error storing register R4: %w", err)
+		return internal.Error("error storing register R4", err)
 	}
 	if err := cpu.Push(cpu.GetRegister(register.Ip)); err != nil {
-		return fmt.Errorf("error storing register Ip: %w", err)
+		return internal.Error("error storing register Ip", err)
 	}
 	if err := cpu.Push(stackHead); err != nil {
-		return fmt.Errorf("error storing stack head: %w", err)
+		return internal.Error("error storing stack head", err)
 	}
 
 	cpu.stackSize = 0
@@ -128,35 +129,35 @@ func (cpu *Cpu) RestoreFrame() error {
 
 	stackHead, err := cpu.Pop()
 	if err != nil {
-		return fmt.Errorf("error restoring frame, no stack head: %w", err)
+		return internal.Error("error restoring frame, no stack head", err)
 	}
 
 	if value, err := cpu.Pop(); err != nil {
-		return fmt.Errorf("error restoring instruction pointer: %w", err)
+		return internal.Error("error restoring instruction pointer", err)
 	} else {
 		cpu.SetRegister(register.Ip, value)
 	}
 
 	if value, err := cpu.Pop(); err != nil {
-		return fmt.Errorf("error restoring register 4: %w", err)
+		return internal.Error("error restoring register 4", err)
 	} else {
 		cpu.SetRegister(register.R4, value)
 	}
 
 	if value, err := cpu.Pop(); err != nil {
-		return fmt.Errorf("error restoring register 3: %w", err)
+		return internal.Error("error restoring register 3", err)
 	} else {
 		cpu.SetRegister(register.R3, value)
 	}
 
 	if value, err := cpu.Pop(); err != nil {
-		return fmt.Errorf("error restoring register 2: %w", err)
+		return internal.Error("error restoring register 2", err)
 	} else {
 		cpu.SetRegister(register.R2, value)
 	}
 
 	if value, err := cpu.Pop(); err != nil {
-		return fmt.Errorf("error restoring register 1: %w", err)
+		return internal.Error("error restoring register 1", err)
 	} else {
 		cpu.SetRegister(register.R1, value)
 	}

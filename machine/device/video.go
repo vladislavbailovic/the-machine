@@ -5,6 +5,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"the-machine/machine/internal"
 	"the-machine/machine/memory"
 )
 
@@ -35,7 +36,7 @@ func (x Video) SetUint16(at memory.Address, val uint16) error {
 func (x Video) SetByte(at memory.Address, val byte) error {
 	coords, err := x.addressToCoords(at)
 	if err != nil {
-		return fmt.Errorf("unable to print output %c at %v: %w", val, at, err)
+		return internal.Error(fmt.Sprintf("unable to print output %c at %v", val, at), err)
 	}
 	fmt.Fprintf(x.stream,
 		fmt.Sprintf("%s[%d;%dH%c", termEsc, coords[1], coords[0], val))
@@ -47,13 +48,13 @@ func (v Video) addressToCoords(at memory.Address) ([]uint8, error) {
 
 	x := uint16(at) % uint16(screenWidth)
 	if x > uint16(screenWidth) {
-		return coords, fmt.Errorf("X outside bounds (%d): %d", screenWidth, x)
+		return coords, internal.Error(fmt.Sprintf("X outside bounds (%d): %d", screenWidth, x), nil)
 	}
 	coords[0] = uint8(x)
 
 	y := uint16(math.Floor(float64(at) / float64(screenWidth)))
 	if y > uint16(screenWidth) {
-		return coords, fmt.Errorf("X outside bounds (%d): %d", screenWidth, y)
+		return coords, internal.Error(fmt.Sprintf("X outside bounds (%d): %d", screenWidth, y), nil)
 	}
 	coords[1] = uint8(y)
 

@@ -1,6 +1,9 @@
 package register
 
-import "fmt"
+import (
+	"fmt"
+	"the-machine/machine/internal"
+)
 
 type Register struct {
 	description string
@@ -119,5 +122,5 @@ func FromByte(b byte) (Register, error) {
 	case R8.pos:
 		return R8, nil
 	}
-	return Register{}, fmt.Errorf("unknown register: %#02x", b)
+	return Register{}, internal.Error(fmt.Sprintf("unknown register: %#02x", b), nil)
 }

@@ -12,7 +12,7 @@ func Test_Memory(t *testing.T) {
 	}
 
 	if err = m.SetUint16(13, 12); err != nil {
-		t.Errorf("expected success setting memory at 13, got: %v", err)
+		t.Fatalf("expected success setting memory at 13, got: %v", err)
 	}
 
 	if x, err = m.GetUint16(13); err != nil || x != 12 {

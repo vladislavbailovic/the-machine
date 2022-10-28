@@ -1,6 +1,7 @@
 package debug
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"the-machine/machine/cpu"
@@ -152,4 +153,12 @@ func (x Renderer) Stack(stackHead uint16, stack memory.MemoryAccess) string {
 // TODO: figure this out
 func (x Renderer) Out(msg string) {
 	fmt.Println(msg)
+}
+
+func (x Renderer) OutError(area string, src error) {
+	err := errors.Unwrap(src)
+	for err != nil {
+		fmt.Printf("\t- Error: %s\n", err)
+		err = errors.Unwrap(err)
+	}
 }

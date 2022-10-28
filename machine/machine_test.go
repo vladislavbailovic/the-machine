@@ -5,6 +5,7 @@ import (
 	"testing"
 	"the-machine/machine/cpu"
 	"the-machine/machine/instruction"
+	"the-machine/machine/internal"
 	"the-machine/machine/memory"
 	"the-machine/machine/register"
 )
@@ -13,7 +14,7 @@ func run(vm Machine) (int, error) {
 	step := 0
 	for step < 127 {
 		if err := vm.Tick(); err != nil {
-			return step, fmt.Errorf("error at tick %d: %v", step, err)
+			return step, internal.Error(fmt.Sprintf("error at tick %d", step), err)
 		}
 		step++
 		if vm.IsDone() {

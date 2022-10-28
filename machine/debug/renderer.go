@@ -129,6 +129,22 @@ func (x Renderer) Disassembly(source memory.MemoryAccess, startAt memory.Address
 	return x.formatter.Stitch(positions, values, instructions)
 }
 
+func (x Renderer) Stack(stackHead uint16, until int, stack memory.MemoryAccess) string {
+	x.formatter.OutputAs = Uint   // Required for stack
+	x.formatter.Numbers = Decimal // Required for stack
+
+	positions := make([]string, until, stackHead)
+	values := make([]string, until, stackHead)
+
+	idx := 0
+	for i := stackHead; idx < until; i -= 2 {
+		positions[idx], values[idx] = x.memoryAt(stack, memory.Address(i))
+		idx++
+	}
+
+	return x.formatter.Stitch(positions, values)
+}
+
 // TODO: figure this out
 func (x Renderer) Out(msg string) {
 	fmt.Println(msg)

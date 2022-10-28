@@ -171,3 +171,8 @@ func (cpu *Cpu) RestoreFrame() error {
 
 	return nil
 }
+
+// TODO: Fugly, used just in debugging
+func (x Cpu) GetStack() (int, memory.MemoryAccess) {
+	return x.stackSize, x.stack
+}

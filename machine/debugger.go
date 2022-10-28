@@ -43,6 +43,12 @@ func (x Debugger) currentRom() {
 	x.renderer.Out(x.Peek(memory.Address(memPos), 8, ROM))
 }
 
+func (x Debugger) currentStack() {
+	x.renderer.Out("[ Stack ]")
+	stackSize, stack := x.vm.cpu.GetStack()
+	x.renderer.Out(x.renderer.Stack(x.vm.cpu.GetRegister(register.Sp), stackSize, stack))
+}
+
 func (x Debugger) currentDisassembly() {
 	memPos := x.vm.cpu.GetRegister(register.Ip)
 	x.renderer.Out("[ Disassembly ]")
@@ -88,7 +94,7 @@ func (x Debugger) Run() {
 		case debug.Tick:
 			x.renderer.Out("")
 			continue
-		case debug.Step:
+		case debug.Next:
 			x.current()
 			continue
 		case debug.Inspect:
@@ -101,6 +107,10 @@ func (x Debugger) Run() {
 			continue
 		case debug.PeekRom:
 			x.currentRom()
+			doTick = false
+			continue
+		case debug.Stack:
+			x.currentStack()
 			doTick = false
 			continue
 		case debug.Disassemble:

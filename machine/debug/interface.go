@@ -6,12 +6,13 @@ type Action uint8
 
 const (
 	Tick        Action = 0
-	Step        Action = iota
+	Next        Action = iota
 	Inspect     Action = iota
 	PeekRam     Action = iota
 	PeekRom     Action = iota
 	Registers   Action = iota
 	Disassemble Action = iota
+	Stack       Action = iota
 	Dump        Action = iota
 	Quit        Action = iota
 )
@@ -43,12 +44,14 @@ func (x Interface) parseCommand(input string) (Command, error) {
 	switch input[:1] {
 	case "q":
 		return Command{Action: Quit}, nil
-	case "s":
-		return Command{Action: Step}, nil
+	case "n":
+		return Command{Action: Next}, nil
 	case "m":
 		return Command{Action: PeekRam}, nil
 	case "p":
 		return Command{Action: PeekRom}, nil
+	case "s":
+		return Command{Action: Stack}, nil
 	case "d":
 		if len(input) > 3 && input[:4] == "dump" {
 			return Command{Action: Dump}, nil

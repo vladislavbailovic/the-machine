@@ -34,11 +34,11 @@ func (mem Memory) GetUint16(at Address) (uint16, error) {
 	if addr+1 <= len(mem) {
 		hi, err := mem.GetByte(at)
 		if err != nil {
-			return 0, fmt.Errorf("uint16: error getting hi byte from %d: %v", at, err)
+			return 0, fmt.Errorf("uint16: error getting hi byte from %d: %w", at, err)
 		}
 		lo, err := mem.GetByte(at + 1)
 		if err != nil {
-			return 0, fmt.Errorf("uint16: error getting lo byte from %d: %v", at, err)
+			return 0, fmt.Errorf("uint16: error getting lo byte from %d: %w", at, err)
 		}
 		res := binary.LittleEndian.Uint16([]byte{hi, lo})
 		return res, err

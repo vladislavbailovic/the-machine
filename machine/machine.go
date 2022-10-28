@@ -59,7 +59,7 @@ func NewWithMemory(mem memory.MemoryAccess, ramSize int) Machine {
 func (vm *Machine) LoadProgram(at memory.Address, program []byte) error {
 	for idx, b := range program {
 		if err := vm.rom.SetByte(at+memory.Address(idx), b); err != nil {
-			return fmt.Errorf("error loading program at %d+%d (%#02x): %v", at, idx, b, err)
+			return fmt.Errorf("error loading program at %d+%d (%#02x): %w", at, idx, b, err)
 		}
 	}
 	vm.status = Loaded
@@ -74,7 +74,7 @@ func (vm *Machine) fetch() (uint16, error) {
 	instr, err := vm.rom.GetUint16(ipAddr)
 	if err != nil {
 		vm.status = Error
-		return instr, fmt.Errorf("unable to get next instruction: %v", err)
+		return instr, fmt.Errorf("unable to get next instruction: %w", err)
 	}
 
 	vm.cpu.SetRegister(register.Ip, ip+2)
@@ -107,7 +107,7 @@ func (vm *Machine) execute(instr instruction.Instruction) error {
 	vm.cycle = Execute
 	if err := instr.Execute(vm.cpu, vm.ram); err != nil {
 		vm.status = Error
-		return fmt.Errorf("error executing %#02x: %v", instr, err)
+		return fmt.Errorf("error executing %#02x: %w", instr, err)
 	}
 	return nil
 }
@@ -121,7 +121,7 @@ func (vm *Machine) Tick() error {
 
 	next, err := vm.fetch()
 	if err != nil {
-		return fmt.Errorf("unable to fetch next tick: %v", err)
+		return fmt.Errorf("unable to fetch next tick: %w", err)
 	}
 
 	decoded, err := vm.decode(next)
@@ -130,7 +130,7 @@ func (vm *Machine) Tick() error {
 	}
 
 	if err := vm.execute(decoded); err != nil {
-		return fmt.Errorf("unable to execute tick: %v", err)
+		return fmt.Errorf("unable to execute tick: %w", err)
 	}
 
 	vm.cycle = Idle

@@ -33,13 +33,13 @@ func (x Reg2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) erro
 
 	source, err := register.FromByte(params[0])
 	if err != nil {
-		return fmt.Errorf("REG2REG: invalid source register (%#02x): %v", params[0], err)
+		return fmt.Errorf("REG2REG: invalid source register (%#02x): %w", params[0], err)
 	}
 	value := cpu.GetRegister(source)
 
 	destination, err := register.FromByte(params[1])
 	if err != nil {
-		return fmt.Errorf("REG2REG: invalid destination register (%#02x): %v", params[1], err)
+		return fmt.Errorf("REG2REG: invalid destination register (%#02x): %w", params[1], err)
 	}
 
 	cpu.SetRegister(destination, value)
@@ -51,7 +51,7 @@ type Reg2Stack struct{}
 func (x Reg2Stack) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	source, err := register.FromByte(byte(raw))
 	if err != nil {
-		return fmt.Errorf("REG2STACK: invalid source register (%#02x): %v", raw, err)
+		return fmt.Errorf("REG2STACK: invalid source register (%#02x): %w", raw, err)
 	}
 	value := cpu.GetRegister(source)
 
@@ -69,12 +69,12 @@ type Stack2Reg struct{}
 func (x Stack2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	destination, err := register.FromByte(byte(raw))
 	if err != nil {
-		return fmt.Errorf("STACK2REG: invalid source register (%#02x): %v", raw, err)
+		return fmt.Errorf("STACK2REG: invalid source register (%#02x): %w", raw, err)
 	}
 
 	value, err := cpu.Pop()
 	if err != nil {
-		return fmt.Errorf("STACK2REG: stack underflow: %v", err)
+		return fmt.Errorf("STACK2REG: stack underflow: %w", err)
 	}
 
 	cpu.SetRegister(destination, value)
@@ -88,7 +88,7 @@ func (x Ac2Reg) Execute(params uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) er
 
 	destination, err := register.FromByte(byte(params))
 	if err != nil {
-		return fmt.Errorf("AC2REG: invalid destination register (%#02x): %v", params, err)
+		return fmt.Errorf("AC2REG: invalid destination register (%#02x): %w", params, err)
 	}
 
 	cpu.SetRegister(destination, value)
@@ -100,7 +100,7 @@ type Reg2Mem struct{}
 func (x Reg2Mem) Execute(params uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	r1, err := register.FromByte(byte(params))
 	if err != nil {
-		return fmt.Errorf("REG2MEM: invalid register (%#02x): %v", params, err)
+		return fmt.Errorf("REG2MEM: invalid register (%#02x): %w", params, err)
 	}
 	value := cpu.GetRegister(r1)
 
@@ -122,18 +122,18 @@ func (x Mem2Reg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) erro
 
 	source, err := register.FromByte(params[0])
 	if err != nil {
-		return fmt.Errorf("MEM2REG: invalid address register (%#02x): %v", params[0], err)
+		return fmt.Errorf("MEM2REG: invalid address register (%#02x): %w", params[0], err)
 	}
 	address := cpu.GetRegister(source)
 
 	destination, err := register.FromByte(params[1])
 	if err != nil {
-		return fmt.Errorf("MEM2REG: invalid destination register (%#02x): %v", params[1], err)
+		return fmt.Errorf("MEM2REG: invalid destination register (%#02x): %w", params[1], err)
 	}
 
 	value, err := mem.GetUint16(memory.Address(address))
 	if err != nil {
-		return fmt.Errorf("MEM2REG: error accessing memory at %d (%#02x): %v", address, address, err)
+		return fmt.Errorf("MEM2REG: error accessing memory at %d (%#02x): %w", address, address, err)
 	}
 
 	cpu.SetRegister(destination, value)
@@ -149,12 +149,12 @@ func (x OperateReg) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) e
 	params := x.unpack(raw)
 	r1, err := register.FromByte(params[0])
 	if err != nil {
-		return fmt.Errorf("OP_REG %d: invalid register #1 (%#02x): %v", x.Operation, params[0], err)
+		return fmt.Errorf("OP_REG %d: invalid register #1 (%#02x): %w", x.Operation, params[0], err)
 	}
 	v1 := cpu.GetRegister(r1)
 	r2, err := register.FromByte(params[1])
 	if err != nil {
-		return fmt.Errorf("OP_REG %d: invalid register #2 (%#02x): %v", x.Operation, params[1], err)
+		return fmt.Errorf("OP_REG %d: invalid register #2 (%#02x): %w", x.Operation, params[1], err)
 	}
 	v2 := cpu.GetRegister(r2)
 
@@ -197,7 +197,7 @@ func (x OperateRegLit) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess
 	params := x.unpack(raw)
 	r1, err := register.FromByte(params[0])
 	if err != nil {
-		return fmt.Errorf("OP_REG_LIT %d: invalid register (%#02x): %v", x.Operation, params[0], err)
+		return fmt.Errorf("OP_REG_LIT %d: invalid register (%#02x): %w", x.Operation, params[0], err)
 	}
 	reg := cpu.GetRegister(r1)
 	literal := uint16(params[1])
@@ -247,11 +247,11 @@ type OperateStack struct {
 func (x OperateStack) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 	operand1, err := cpu.Pop()
 	if err != nil {
-		return fmt.Errorf("OP_STACK %d: stack underflow getting first operand: %v", x.Operation, err)
+		return fmt.Errorf("OP_STACK %d: stack underflow getting first operand: %w", x.Operation, err)
 	}
 	operand2, err := cpu.Pop()
 	if err != nil {
-		return fmt.Errorf("OP_STACK %d: stack underflow getting second operand: %v", x.Operation, err)
+		return fmt.Errorf("OP_STACK %d: stack underflow getting second operand: %w", x.Operation, err)
 	}
 
 	switch x.Operation {
@@ -287,14 +287,14 @@ func (x Jump) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 
 	cr, err := register.FromByte(params[0])
 	if err != nil {
-		return fmt.Errorf("JMP[%d][%v]: invalid comparison register (%#02x): %v", x.Comparison, cr, params[0], err)
+		return fmt.Errorf("JMP[%d][%v]: invalid comparison register (%#02x): %w", x.Comparison, cr, params[0], err)
 	}
 	// fmt.Printf("\t- Comparison register: %v (%016b)\n", cr, params[0])
 	compareWith := cpu.GetRegister(cr)
 
 	ar, err := register.FromByte(params[1])
 	if err != nil {
-		return fmt.Errorf("JMP[%d][%v]: invalid address register (%#02x): %v", x.Comparison, acu, params[1], err)
+		return fmt.Errorf("JMP[%d][%v]: invalid address register (%#02x): %w", x.Comparison, acu, params[1], err)
 	}
 	// fmt.Printf("\t- Address register: %v (%016b)\n", ar, params[1])
 	address := cpu.GetRegister(ar)
@@ -328,7 +328,7 @@ func (x Jump) Execute(raw uint16, cpu *cpu.Cpu, mem memory.MemoryAccess) error {
 			writeIp = true
 		}
 	default:
-		return fmt.Errorf("JMP[%d][%v]: invalid comparison: %v", x.Comparison, acu, params)
+		return fmt.Errorf("JMP[%d][%v]: invalid comparison: %w", x.Comparison, acu, params)
 	}
 
 	if writeIp {
@@ -345,12 +345,12 @@ type Call struct{}
 func (x Call) Execute(raw uint16, cpu *cpu.Cpu, _ memory.MemoryAccess) error {
 	reg, err := register.FromByte(byte(raw))
 	if err != nil {
-		return fmt.Errorf("CALL: unknown register %d: %v", raw, err)
+		return fmt.Errorf("CALL: unknown register %d: %w", raw, err)
 	}
 	address := cpu.GetRegister(reg)
 
 	if err := cpu.StoreFrame(); err != nil {
-		return fmt.Errorf("CALL: error storing frame before calling %d: %v", address, err)
+		return fmt.Errorf("CALL: error storing frame before calling %d: %w", address, err)
 	}
 
 	cpu.SetRegister(register.Ip, address)
@@ -362,7 +362,7 @@ type Return struct{}
 
 func (x Return) Execute(_ uint16, cpu *cpu.Cpu, _ memory.MemoryAccess) error {
 	if err := cpu.RestoreFrame(); err != nil {
-		return fmt.Errorf("RET: error restoring frame: %v", err)
+		return fmt.Errorf("RET: error restoring frame: %w", err)
 	}
 	return nil
 }

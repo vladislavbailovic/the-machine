@@ -35,7 +35,7 @@ func (x Video) SetUint16(at memory.Address, val uint16) error {
 func (x Video) SetByte(at memory.Address, val byte) error {
 	coords, err := x.addressToCoords(at)
 	if err != nil {
-		return fmt.Errorf("unable to print output %c at %v: %v", val, at, err)
+		return fmt.Errorf("unable to print output %c at %v: %w", val, at, err)
 	}
 	fmt.Fprintf(x.stream,
 		fmt.Sprintf("%s[%d;%dH%c", termEsc, coords[1], coords[0], val))

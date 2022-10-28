@@ -160,8 +160,8 @@ func (x Renderer) OutError(area string, src error) {
 	err := errors.Unwrap(src)
 	fmt.Fprintf(os.Stderr, "[ERROR][%s] ", area)
 	for err != nil {
-		fmt.Printf("%s\n\t", err)
+		fmt.Fprintf(os.Stderr, "%s\n\t", err)
 		err = errors.Unwrap(err)
 	}
-	fmt.Println()
+	fmt.Fprintf(os.Stderr, "\n")
 }

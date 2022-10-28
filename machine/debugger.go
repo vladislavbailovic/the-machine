@@ -186,7 +186,7 @@ func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType
 		source = x.vm.rom
 	default:
 		// x.renderer.OutError(fmt.Sprintf("ERROR: unknown source type: %v", srcType))
-		x.renderer.OutError("debugger error", internal.Error(fmt.Sprintf("unknown source type: %v", srcType), nil))
+		x.renderer.OutError("debugger error", internal.Error(fmt.Sprintf("unknown source type: %v", srcType), nil, internal.ErrorDebugger))
 		return ""
 	}
 

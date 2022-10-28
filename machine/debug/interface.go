@@ -67,5 +67,5 @@ func (x Interface) parseCommand(input string) (Command, error) {
 		return Command{Action: Inspect}, nil
 	}
 	fmt.Printf("Got input: [%s]", input)
-	return Command{}, internal.Error(fmt.Sprintf("ERROR: unable to parse command"), nil)
+	return Command{}, internal.Error(fmt.Sprintf("ERROR: unable to parse command"), nil, internal.ErrorInterface)
 }

@@ -122,5 +122,5 @@ func FromByte(b byte) (Register, error) {
 	case R8.pos:
 		return R8, nil
 	}
-	return Register{}, internal.Error(fmt.Sprintf("unknown register: %#02x", b), nil)
+	return Register{}, internal.Error(fmt.Sprintf("unknown register: %#02x", b), nil, internal.ErrorCpu)
 }

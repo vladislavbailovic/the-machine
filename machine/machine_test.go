@@ -14,7 +14,7 @@ func run(vm Machine) (int, error) {
 	step := 0
 	for step < 127 {
 		if err := vm.Tick(); err != nil {
-			return step, internal.Error(fmt.Sprintf("error at tick %d", step), err)
+			return step, internal.Error(fmt.Sprintf("error at tick %d", step), err, internal.ErrorRuntime)
 		}
 		step++
 		if vm.IsDone() {

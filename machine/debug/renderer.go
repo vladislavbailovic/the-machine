@@ -3,6 +3,7 @@ package debug
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"the-machine/machine/cpu"
 	"the-machine/machine/instruction"
@@ -157,8 +158,10 @@ func (x Renderer) Out(msg string) {
 
 func (x Renderer) OutError(area string, src error) {
 	err := errors.Unwrap(src)
+	fmt.Fprintf(os.Stderr, "[ERROR][%s] ", area)
 	for err != nil {
-		fmt.Printf("\t- Error: %s\n", err)
+		fmt.Printf("%s\n\t", err)
 		err = errors.Unwrap(err)
 	}
+	fmt.Println()
 }

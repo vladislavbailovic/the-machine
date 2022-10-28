@@ -70,11 +70,11 @@ func (cpu *Cpu) Push(value uint16) error {
 	address := cpu.GetRegister(register.Sp)
 	address += 2
 	if address >= stackSize {
-		return internal.Error(fmt.Sprintf("stack overflow, unable to push %d (%#02x) to %d (%#02x)", value, value, address, address), nil)
+		return internal.Error(fmt.Sprintf("stack overflow, unable to push %d (%#02x) to %d (%#02x)", value, value, address, address), nil, internal.ErrorCpu)
 	}
 
 	if err := cpu.stack.SetUint16(memory.Address(address), value); err != nil {
-		return internal.Error("stack overflow", err)
+		return internal.Error("stack overflow", err, internal.ErrorCpu)
 	}
 	cpu.stackSize++
 	cpu.SetRegister(register.Sp, address)
@@ -84,12 +84,12 @@ func (cpu *Cpu) Push(value uint16) error {
 func (cpu *Cpu) Pop() (uint16, error) {
 	address := cpu.GetRegister(register.Sp)
 	if address < 2 {
-		return 0, internal.Error(fmt.Sprintf("stack underflow, unable to pop from %d (%#02x))", address, address), nil)
+		return 0, internal.Error(fmt.Sprintf("stack underflow, unable to pop from %d (%#02x))", address, address), nil, internal.ErrorCpu)
 	}
 
 	value, err := cpu.stack.GetUint16(memory.Address(address))
 	if err != nil {
-		return value, internal.Error("stack underflow", err)
+		return value, internal.Error("stack underflow", err, internal.ErrorCpu)
 	}
 	cpu.stackSize--
 	cpu.SetRegister(register.Sp, address-2)
@@ -100,22 +100,22 @@ func (cpu *Cpu) StoreFrame() error {
 	stackHead := uint16(cpu.stackSize)
 
 	if err := cpu.Push(cpu.GetRegister(register.R1)); err != nil {
-		return internal.Error("error storing register R1", err)
+		return internal.Error("error storing register R1", err, internal.ErrorCpu)
 	}
 	if err := cpu.Push(cpu.GetRegister(register.R2)); err != nil {
-		return internal.Error("error storing register R2", err)
+		return internal.Error("error storing register R2", err, internal.ErrorCpu)
 	}
 	if err := cpu.Push(cpu.GetRegister(register.R3)); err != nil {
-		return internal.Error("error storing register R3", err)
+		return internal.Error("error storing register R3", err, internal.ErrorCpu)
 	}
 	if err := cpu.Push(cpu.GetRegister(register.R4)); err != nil {
-		return internal.Error("error storing register R4", err)
+		return internal.Error("error storing register R4", err, internal.ErrorCpu)
 	}
 	if err := cpu.Push(cpu.GetRegister(register.Ip)); err != nil {
-		return internal.Error("error storing register Ip", err)
+		return internal.Error("error storing register Ip", err, internal.ErrorCpu)
 	}
 	if err := cpu.Push(stackHead); err != nil {
-		return internal.Error("error storing stack head", err)
+		return internal.Error("error storing stack head", err, internal.ErrorCpu)
 	}
 
 	cpu.stackSize = 0
@@ -129,35 +129,35 @@ func (cpu *Cpu) RestoreFrame() error {
 
 	stackHead, err := cpu.Pop()
 	if err != nil {
-		return internal.Error("error restoring frame, no stack head", err)
+		return internal.Error("error restoring frame, no stack head", err, internal.ErrorCpu)
 	}
 
 	if value, err := cpu.Pop(); err != nil {
-		return internal.Error("error restoring instruction pointer", err)
+		return internal.Error("error restoring instruction pointer", err, internal.ErrorCpu)
 	} else {
 		cpu.SetRegister(register.Ip, value)
 	}
 
 	if value, err := cpu.Pop(); err != nil {
-		return internal.Error("error restoring register 4", err)
+		return internal.Error("error restoring register 4", err, internal.ErrorCpu)
 	} else {
 		cpu.SetRegister(register.R4, value)
 	}
 
 	if value, err := cpu.Pop(); err != nil {
-		return internal.Error("error restoring register 3", err)
+		return internal.Error("error restoring register 3", err, internal.ErrorCpu)
 	} else {
 		cpu.SetRegister(register.R3, value)
 	}
 
 	if value, err := cpu.Pop(); err != nil {
-		return internal.Error("error restoring register 2", err)
+		return internal.Error("error restoring register 2", err, internal.ErrorCpu)
 	} else {
 		cpu.SetRegister(register.R2, value)
 	}
 
 	if value, err := cpu.Pop(); err != nil {
-		return internal.Error("error restoring register 1", err)
+		return internal.Error("error restoring register 1", err, internal.ErrorCpu)
 	} else {
 		cpu.SetRegister(register.R1, value)
 	}

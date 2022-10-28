@@ -84,7 +84,7 @@ func (x Debugger) Run() {
 			}
 		}
 		doTick = true
-		x.skin.Prompt(ticks)
+		x.skin.Prompt(ticks, x.vm.cpu.GetRegister(register.Ip))
 		cmd, err := x.skin.GetCommand()
 		if err != nil {
 			x.renderer.Out(fmt.Sprintf("ERROR: debugger error: %v", err))

@@ -27,8 +27,8 @@ func NewInterface() *Interface {
 	return &Interface{}
 }
 
-func (x Interface) Prompt(ticks int) {
-	fmt.Printf("[tick: %d] > ", ticks)
+func (x Interface) Prompt(ticks int, ip uint16) {
+	fmt.Printf("[tick: %d|ip: %d] > ", ticks, ip)
 }
 
 func (x Interface) GetCommand() (Command, error) {

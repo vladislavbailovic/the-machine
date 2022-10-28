@@ -45,8 +45,8 @@ func (x Debugger) currentRom() {
 
 func (x Debugger) currentStack() {
 	x.renderer.Out("[ Stack ]")
-	stackSize, stack := x.vm.cpu.GetStack()
-	x.renderer.Out(x.renderer.Stack(x.vm.cpu.GetRegister(register.Sp), stackSize, stack))
+	_, stack := x.vm.cpu.GetStack()
+	x.renderer.Out(x.renderer.Stack(x.vm.cpu.GetRegister(register.Sp), stack))
 }
 
 func (x Debugger) currentDisassembly() {

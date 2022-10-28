@@ -25,7 +25,7 @@ func NewDebugger(vm *Machine, f debug.Formatter) *Debugger {
 	return &Debugger{vm: vm, renderer: debug.NewRenderer(f), skin: debug.NewInterface()}
 }
 
-func (x Debugger) current() {
+func (x Debugger) Current() {
 	x.renderer.Out("")
 	x.currentRam()
 	x.currentDisassembly()
@@ -98,10 +98,10 @@ func (x Debugger) Run() {
 			x.renderer.Out("")
 			continue
 		case debug.Next:
-			x.current()
+			x.Current()
 			continue
 		case debug.Inspect:
-			x.current()
+			x.Current()
 			doTick = false
 			continue
 		case debug.PeekRam:
@@ -201,4 +201,8 @@ func (x Debugger) Disassemble(startAt memory.Address, outputLen int) string {
 func (x Debugger) Dump() error {
 	dumper := debug.NewDumper()
 	return dumper.Dump(x.vm.rom)
+}
+
+func (x Debugger) OutError(err error) {
+	x.renderer.OutError("error", err)
 }

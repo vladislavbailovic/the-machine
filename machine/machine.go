@@ -2,8 +2,8 @@ package machine
 
 import (
 	"fmt"
-	"strings"
 	"the-machine/machine/cpu"
+	"the-machine/machine/debug"
 	"the-machine/machine/instruction"
 	"the-machine/machine/internal"
 	"the-machine/machine/memory"
@@ -143,75 +143,29 @@ func (vm Machine) IsDone() bool {
 	return vm.status == Done || vm.status == Error
 }
 
+func (vm *Machine) DebugError(err error) {
+	fmtr := debug.Formatter{
+		Numbers:   debug.Binary,
+		OutputAs:  debug.Byte,
+		Rendering: debug.Vertical,
+	}
+	dbg := NewDebugger(vm, fmtr)
+
+	if err != nil {
+		dbg.OutError(err)
+	}
+
+	dbg.Current()
+	dbg.Run()
+}
 func (vm *Machine) Debug() {
-	bpos := make([]string, 8)
-	bval := make([]string, 8)
-	positions := make([]string, 8)
-	values := make([]string, 8)
-	apos := make([]string, 8)
-	aval := make([]string, 8)
-
-	ad := vm.cpu.GetRegister(register.Ip)
-
-	if ad > 8 {
-		for i := 0; i < 8; i++ {
-			pos := (ad + uint16(i)) - 8
-			bpos[i] = fmt.Sprintf("%04d", pos)
-			b, _ := vm.ram.GetByte(memory.Address(pos))
-			bval[i] = fmt.Sprintf("%#02x", b)
-		}
+	fmtr := debug.Formatter{
+		Numbers:   debug.Binary,
+		OutputAs:  debug.Byte,
+		Rendering: debug.Vertical,
 	}
+	dbg := NewDebugger(vm, fmtr)
 
-	for i := 0; i < 8; i++ {
-		pos := ad + uint16(i)
-		positions[i] = fmt.Sprintf("%04d", pos)
-		b, _ := vm.ram.GetByte(memory.Address(pos))
-		values[i] = fmt.Sprintf("%#02x", b)
-	}
-
-	for i := 0; i < 8; i++ {
-		pos := ad + uint16(i+8)
-		apos[i] = fmt.Sprintf("%04d", pos)
-		b, _ := vm.ram.GetByte(memory.Address(pos))
-		aval[i] = fmt.Sprintf("%#02x", b)
-	}
-
-	positions = append(positions, " | ")
-	values = append(values, " | ")
-
-	putReg := func(name string, r register.Register) {
-		r1 := vm.cpu.GetRegister(r)
-		value := fmt.Sprintf("%4d", r1)
-		format := fmt.Sprintf("%%%ds", len(value))
-
-		positions = append(positions, fmt.Sprintf(format, name))
-		values = append(values, value)
-	}
-
-	putReg("R1", register.R1)
-	putReg("R2", register.R2)
-	putReg("R3", register.R3)
-	putReg("R4", register.R4)
-	putReg("Ip", register.Ip)
-	putReg("Ac", register.Ac)
-
-	posStr := strings.Join(positions, " ")
-	after := strings.Join(apos, " ")
-
-	fmt.Println()
-	if ad > 8 {
-		before := strings.Join(bpos, " ")
-		fmt.Println(before)
-		fmt.Println(strings.Repeat("-", len(before)))
-		fmt.Println(strings.Join(bval, " "))
-		fmt.Println()
-	}
-	fmt.Println(posStr)
-	fmt.Println(strings.Repeat("-", len(posStr)))
-	fmt.Println(strings.Join(values, " "))
-	fmt.Println()
-	fmt.Println(after)
-	fmt.Println(strings.Repeat("-", len(after)))
-	fmt.Println(strings.Join(aval, " "))
-	fmt.Println()
+	dbg.Current()
+	dbg.Run()
 }

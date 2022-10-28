@@ -23,6 +23,10 @@ func (x Register) Name() string {
 	return x.name
 }
 
+func (x Register) String() string {
+	return fmt.Sprintf("%s: %s [%d]", x.name, x.description, x.pos)
+}
+
 var Ip = Register{
 	description: "Instruction Pointer",
 	name:        "Ip",

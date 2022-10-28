@@ -57,7 +57,6 @@ func main() {
 	)
 	vm.LoadProgram(500, setLimit)
 	vm.LoadProgram(0, packProgram(
-		instruction.POP_REG.Pack(register.R1.AsUint16()), // <--
 		instruction.PUSH_LIT.Pack(65),
 		instruction.POP_REG.Pack(register.R1.AsUint16()), // R1 = 65 (draw char)
 		instruction.PUSH_LIT.Pack(500),

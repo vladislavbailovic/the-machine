@@ -16,7 +16,7 @@ type Instruction struct {
 func (x Instruction) Execute(cpu *cpu.Cpu, memory memory.MemoryAccess) error {
 	err := x.Executor.Execute(x.Raw, cpu, memory)
 	if err != nil {
-		return internal.Error(fmt.Sprintf("error executing \"%s\"", x.Description), err, internal.ErrorInstruction)
+		return internal.Error(fmt.Sprintf("error executing %v", x), err, internal.ErrorInstruction)
 	}
 	return nil
 }

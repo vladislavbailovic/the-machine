@@ -243,7 +243,7 @@ func (x Debugger) Dump() error {
 func (x Debugger) Load() error {
 	dumper := debug.NewAsciiDumper(debug.Decimal)
 	if rom, err := dumper.Load(); err != nil {
-		return internal.Error("loading error", err, internal.ErrorLoading)
+		return err
 	} else {
 		x.vm.LoadProgram(0, rom)
 		x.vm.Reset()

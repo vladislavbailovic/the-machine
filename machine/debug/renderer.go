@@ -158,10 +158,9 @@ func (x Renderer) Out(msg string) {
 
 func (x Renderer) OutError(area string, src error) {
 	err := errors.Unwrap(src)
-	fmt.Fprintf(os.Stderr, "[ERROR][%s] ", area)
+	fmt.Fprintf(os.Stderr, "[ERROR][%s] %s\n", area, src.Error())
 	for err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n\t", err)
+		fmt.Fprintf(os.Stderr, "\t%s\n", err)
 		err = errors.Unwrap(err)
 	}
-	fmt.Fprintf(os.Stderr, "\n")
 }

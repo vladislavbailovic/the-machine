@@ -77,6 +77,8 @@ func (x AsciiDumper) Load() ([]byte, error) {
 		if "" == raw {
 			continue
 		}
+		// TODO: support Hex/Binary format numbers
+		// TODO: use strconv.ParseInt(str string, base int, bitsize int)
 		if b, err := strconv.Atoi(raw); err != nil {
 			return out, internal.Error(fmt.Sprintf("error loading %s at position %d: %v", x.fname, idx, raw), err, internal.ErrorLoading)
 		} else {

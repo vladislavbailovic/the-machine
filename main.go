@@ -9,6 +9,7 @@ import (
 	"the-machine/machine/debug"
 	"the-machine/machine/device"
 	"the-machine/machine/instruction"
+	"the-machine/machine/memory"
 	"the-machine/machine/register"
 )
 
@@ -46,7 +47,25 @@ func run(vm machine.Machine) (int, error) {
 }
 
 func main() {
-	main_InteractiveDebugger()
+	main_IoStdin()
+}
+
+func main_IoStdin() {
+	mem := device.NewIoMap()
+	if b, err := mem.GetByte(memory.Address(device.Stdin)); err != nil {
+		fmt.Printf("ERROR: %v", err)
+	} else {
+		fmt.Printf("SUCCESS: got %v", b)
+	}
+}
+
+func main_IoStdout() {
+	mem := device.NewIoMap()
+	mem.SetByte(memory.Address(device.Stdout), byte('H'))
+	mem.SetByte(memory.Address(device.Stdout), byte('e'))
+	mem.SetByte(memory.Address(device.Stdout), byte('l'))
+	mem.SetByte(memory.Address(device.Stdout), byte('l'))
+	mem.SetByte(memory.Address(device.Stdout), byte('0'))
 }
 
 func main_InteractiveDebugger() {

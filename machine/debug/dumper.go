@@ -8,18 +8,55 @@ import (
 	"the-machine/machine/memory"
 )
 
+type Dumpable interface {
+	Out(byte, *bufio.Writer) (int, error)
+	Dump(memory.MemoryAccess) error
+}
+
 type Dumper struct {
 	fname string
 }
 
-func NewDumper() Dumper {
+func NewDumper() Dumpable {
 	return Dumper{fname: "out.bin"}
 }
 
 func (x Dumper) Dump(mem memory.MemoryAccess) error {
-	f, err := os.Create(x.fname)
+	return dumpRawMemory(x, mem, x.fname)
+}
+
+func (x Dumper) Out(b byte, w *bufio.Writer) (int, error) {
+	return w.Write([]byte{b})
+}
+
+type AsciiDumper struct {
+	Dumper
+	formatter  Formatter
+	byteFormat string
+}
+
+func NewAsciiDumper(numbers Representation) Dumpable {
+	var dump Dumper = Dumper{fname: "out.asc"}
+	format := Formatter{
+		Numbers:  numbers,
+		OutputAs: Byte,
+	}
+	_, valueFmt := format.GetFormat()
+	return AsciiDumper{Dumper: dump, formatter: format, byteFormat: valueFmt}
+}
+
+func (x AsciiDumper) Out(b byte, w *bufio.Writer) (int, error) {
+	return w.WriteString(fmt.Sprintf(x.byteFormat, b))
+}
+
+func (x AsciiDumper) Dump(mem memory.MemoryAccess) error {
+	return dumpRawMemory(x, mem, x.fname)
+}
+
+func dumpRawMemory(x Dumpable, mem memory.MemoryAccess, toFname string) error {
+	f, err := os.Create(toFname)
 	if err != nil {
-		return internal.Error(fmt.Sprintf("error creating dump file %s", x.fname), err, internal.ErrorSaving)
+		return internal.Error(fmt.Sprintf("error creating dump file %s", toFname), err, internal.ErrorSaving)
 	}
 	defer f.Close()
 
@@ -29,8 +66,8 @@ func (x Dumper) Dump(mem memory.MemoryAccess) error {
 		if b, err := mem.GetByte(memory.Address(idx)); err != nil {
 			break
 		} else {
-			if _, err := buffer.Write([]byte{b}); err != nil {
-				return internal.Error(fmt.Sprintf("error dumping raw memory to %s", x.fname), err, internal.ErrorSaving)
+			if _, err := x.Out(b, buffer); err != nil {
+				return internal.Error(fmt.Sprintf("error dumping memory to %s", toFname), err, internal.ErrorSaving)
 			}
 		}
 		idx++

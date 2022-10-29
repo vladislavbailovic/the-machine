@@ -228,7 +228,7 @@ func (x Debugger) Disassemble(startAt memory.Address, outputLen int) string {
 }
 
 func (x Debugger) Dump() error {
-	dumper := debug.NewDumper()
+	dumper := debug.NewAsciiDumper(debug.Decimal)
 	return dumper.Dump(x.vm.rom)
 }
 

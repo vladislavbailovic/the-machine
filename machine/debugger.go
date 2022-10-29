@@ -207,30 +207,42 @@ func (x Debugger) AllRegisters() string {
 	})
 }
 
-func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType MemoryType) string {
+func (x Debugger) getMemory(srcType memory.MemoryType) memory.MemoryAccess {
 	var source memory.MemoryAccess
 	switch srcType {
-	case RAM:
-		source = x.vm.ram
-	case ROM:
-		source = x.vm.rom
+	case memory.RAM:
+		if ram, err := x.vm.getMemory(memory.RAM); err != nil {
+			x.renderer.OutError("debugger error", internal.Error("unable to access RAM", err, internal.ErrorDebugger))
+		} else {
+			source = ram
+		}
+	case memory.ROM:
+		if rom, err := x.vm.getMemory(memory.ROM); err != nil {
+			x.renderer.OutError("debugger error", internal.Error("unable to access ROM", err, internal.ErrorDebugger))
+		} else {
+			source = rom
+		}
 	default:
 		// x.renderer.OutError(fmt.Sprintf("ERROR: unknown source type: %v", srcType))
 		x.renderer.OutError("debugger error", internal.Error(fmt.Sprintf("unknown source type: %v", srcType), nil, internal.ErrorDebugger))
-		return ""
 	}
+	return source
+}
 
+func (x Debugger) Peek(startAt memory.Address, outputLen int, srcType memory.MemoryType) string {
+	source := x.getMemory(srcType)
 	return x.renderer.Memory(source, startAt, outputLen)
 }
 
 func (x Debugger) Disassemble(startAt memory.Address, outputLen int) string {
-	source := x.vm.rom
+	source := x.getMemory(memory.ROM)
 	return x.renderer.Disassembly(source, startAt, outputLen)
 }
 
 func (x Debugger) Dump() error {
 	dumper := debug.NewAsciiDumper(debug.Decimal)
-	return dumper.Dump(x.vm.rom)
+	source := x.getMemory(memory.ROM)
+	return dumper.Dump(source)
 }
 
 func (x Debugger) Load() error {

@@ -3,7 +3,6 @@ package machine
 import (
 	"fmt"
 	"testing"
-	"the-machine/machine/cpu"
 	"the-machine/machine/instruction"
 	"the-machine/machine/internal"
 	"the-machine/machine/memory"
@@ -47,7 +46,7 @@ func Test_Machine_Pack2Regs(t *testing.T) {
 	}
 	for vid, value := range values {
 		for rid, destination := range registers {
-			vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+			vm := NewMachine(1024)
 			program := packProgram(
 				instruction.MOV_LIT_R7.Pack(value),
 				instruction.MOV_REG_REG.Pack(uint16(register.R7.AsByte()), uint16(destination.AsByte())),
@@ -80,7 +79,7 @@ func Test_Machine_SingleUint16Instruction_All(t *testing.T) {
 		regIdx := 0
 		for reg, instr := range registers {
 			// fmt.Printf("--- %d::%d: %d into %v ---\n", idx, regIdx, value, reg)
-			vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+			vm := NewMachine(255)
 			program := instr.Pack(value)
 			vm.LoadProgram(0, packProgram(program))
 			if step, err := run(vm); err != nil || step > 2 {
@@ -97,7 +96,7 @@ func Test_Machine_SingleUint16Instruction_All(t *testing.T) {
 }
 
 func Test_Machine_AddRegReg_One(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
 		instruction.MOV_LIT_R2.Pack(12),
@@ -130,7 +129,7 @@ func Test_Machine_AddRegReg_One(t *testing.T) {
 }
 
 func Test_Machine_AddRegLit_One(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
 		instruction.ADD_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
@@ -157,7 +156,7 @@ func Test_Machine_AddRegLit_One(t *testing.T) {
 }
 
 func Test_Machine_SubRegReg_One(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
 		instruction.MOV_LIT_R2.Pack(12),
@@ -189,7 +188,7 @@ func Test_Machine_SubRegReg_One(t *testing.T) {
 }
 
 func Test_Machine_SubRegLit_One(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
 		instruction.SUB_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
@@ -216,7 +215,7 @@ func Test_Machine_SubRegLit_One(t *testing.T) {
 }
 
 func Test_Machine_MulRegReg_One(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
 		instruction.MOV_LIT_R2.Pack(12),
@@ -248,7 +247,7 @@ func Test_Machine_MulRegReg_One(t *testing.T) {
 }
 
 func Test_Machine_MulRegLit_One(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
 		instruction.MUL_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
@@ -275,7 +274,7 @@ func Test_Machine_MulRegLit_One(t *testing.T) {
 }
 
 func Test_Machine_MulRegReg_Overflow(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	var val uint16 = 257
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(val),
@@ -311,7 +310,7 @@ func Test_Machine_MulRegReg_Overflow(t *testing.T) {
 }
 
 func Test_Machine_DivRegReg_Straight(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(120),
 		instruction.MOV_LIT_R2.Pack(12),
@@ -343,7 +342,7 @@ func Test_Machine_DivRegReg_Straight(t *testing.T) {
 }
 
 func Test_Machine_DivRegLit_Straight(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(39),
 		instruction.DIV_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
@@ -370,7 +369,7 @@ func Test_Machine_DivRegLit_Straight(t *testing.T) {
 }
 
 func Test_Machine_DivRegReg_Round(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(128),
 		instruction.MOV_LIT_R2.Pack(12),
@@ -402,7 +401,7 @@ func Test_Machine_DivRegReg_Round(t *testing.T) {
 }
 
 func Test_Machine_DivRegLit_Round(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(40),
 		instruction.DIV_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
@@ -429,7 +428,7 @@ func Test_Machine_DivRegLit_Round(t *testing.T) {
 }
 
 func Test_Machine_ModRegReg_One(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
 		instruction.MOV_LIT_R2.Pack(12),
@@ -461,7 +460,7 @@ func Test_Machine_ModRegReg_One(t *testing.T) {
 }
 
 func Test_Machine_ModRegLit_One(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(40),
 		instruction.MOD_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(3)), // 2 bytes left for literal
@@ -488,7 +487,7 @@ func Test_Machine_ModRegLit_One(t *testing.T) {
 }
 
 func Test_Machine_MovRegMem(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(2048), rom: memory.NewMemory(255)}
+	vm := NewMachine(2048)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(1023),
 		instruction.MOV_LIT_R2.Pack(289),
@@ -524,7 +523,8 @@ func Test_Machine_MovRegMem(t *testing.T) {
 		t.Fatalf("error setting memory address in accumulator")
 	}
 
-	res, err := vm.ram.GetUint16(1312)
+	ram, _ := vm.getMemory(memory.RAM)
+	res, err := ram.GetUint16(1312)
 	if err != nil {
 		vm.Debug()
 		t.Fatalf("error setting memory at 1312: %v", err)
@@ -536,7 +536,7 @@ func Test_Machine_MovRegMem(t *testing.T) {
 }
 
 func Test_Machine_MovLitMem(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(2048), rom: memory.NewMemory(255)}
+	vm := NewMachine(2048)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(1023),
 		instruction.MOV_LIT_R2.Pack(289),
@@ -567,7 +567,8 @@ func Test_Machine_MovLitMem(t *testing.T) {
 		t.Fatalf("error setting memory address in accumulator")
 	}
 
-	res, err := vm.ram.GetUint16(1312)
+	ram, _ := vm.getMemory(memory.RAM)
+	res, err := ram.GetUint16(1312)
 	if err != nil {
 		vm.Debug()
 		t.Fatalf("error setting memory at 1312: %v", err)
@@ -579,7 +580,7 @@ func Test_Machine_MovLitMem(t *testing.T) {
 }
 
 func Test_Machine_MovRegReg_GeneralPurpose(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(161),
 		instruction.MOV_REG_REG.Pack(uint16(register.R1.AsByte()), uint16(register.R2.AsByte())),
@@ -601,7 +602,7 @@ func Test_Machine_MovRegReg_GeneralPurpose(t *testing.T) {
 }
 
 func Test_Machine_MovRegReg_Ac2General(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(160),
 		instruction.ADD_REG_LIT.Pack(uint16(register.R1.AsByte()), uint16(1)),
@@ -633,7 +634,7 @@ func Test_Machine_MovRegReg_Ac2General(t *testing.T) {
 }
 
 func Test_Machine_Jne(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R2.Pack(13),
 		instruction.MOV_LIT_R3.Pack(4), // Multiple of 2 because uint16 addresses
@@ -672,7 +673,7 @@ func Test_Machine_Jne(t *testing.T) {
 }
 
 func Test_Machine_Jeq(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(11),
 		instruction.MOV_LIT_R2.Pack(13),
@@ -712,7 +713,7 @@ func Test_Machine_Jeq(t *testing.T) {
 }
 
 func Test_Machine_Jgt(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(25),
 		instruction.MOV_LIT_R2.Pack(13),
@@ -752,7 +753,7 @@ func Test_Machine_Jgt(t *testing.T) {
 }
 
 func Test_Machine_Jge(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(25),
 		instruction.MOV_LIT_R2.Pack(13),
@@ -792,7 +793,7 @@ func Test_Machine_Jge(t *testing.T) {
 }
 
 func Test_Machine_Jlt(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
 		instruction.MOV_LIT_R2.Pack(25),
@@ -832,7 +833,7 @@ func Test_Machine_Jlt(t *testing.T) {
 }
 
 func Test_Machine_Jle(t *testing.T) {
-	vm := Machine{cpu: cpu.NewCpu(), ram: memory.NewMemory(255), rom: memory.NewMemory(255)}
+	vm := NewMachine(255)
 	program := packProgram(
 		instruction.MOV_LIT_R1.Pack(13),
 		instruction.MOV_LIT_R2.Pack(26),

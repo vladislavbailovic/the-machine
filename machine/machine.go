@@ -31,8 +31,7 @@ const (
 
 type Machine struct {
 	cpu    *cpu.Cpu
-	rom    memory.MemoryAccess
-	ram    memory.MemoryAccess
+	memory MemoryMap
 	status Status
 	cycle  Cycle
 }
@@ -40,8 +39,7 @@ type Machine struct {
 func NewMachine(memsize int) Machine {
 	return Machine{
 		cpu:    cpu.NewCpu(),
-		rom:    memory.NewMemory(memsize),
-		ram:    memory.NewMemory(memsize),
+		memory: NewMemoryMap(memsize, memsize),
 		status: Ready,
 		cycle:  Idle,
 	}
@@ -53,19 +51,29 @@ func (vm *Machine) Reset() {
 	vm.cycle = Idle
 }
 
+func (vm *Machine) getMemory(kind memory.MemoryType) (memory.MemoryAccess, error) {
+	if m, ok := vm.memory[kind]; ok {
+		return m, nil
+	}
+	return nil, internal.Error(fmt.Sprintf("unable to access memory %s", kind), nil, internal.ErrorRuntime)
+}
+
 func NewWithMemory(mem memory.MemoryAccess, ramSize int) Machine {
 	return Machine{
 		cpu:    cpu.NewCpu(),
-		rom:    memory.NewMemory(ramSize),
-		ram:    mem,
+		memory: NewMemoryMap(ramSize, ramSize),
 		status: Ready,
 		cycle:  Idle,
 	}
 }
 
 func (vm *Machine) LoadProgram(at memory.Address, program []byte) error {
+	rom, err := vm.getMemory(memory.ROM)
+	if err != nil {
+		return internal.Error("unable to access ROM", nil, internal.ErrorRuntime)
+	}
 	for idx, b := range program {
-		if err := vm.rom.SetByte(at+memory.Address(idx), b); err != nil {
+		if err := rom.SetByte(at+memory.Address(idx), b); err != nil {
 			return internal.Error(fmt.Sprintf("error loading program at %d+%d (%#02x)", at, idx, b), err, internal.ErrorLoading)
 		}
 	}
@@ -78,7 +86,11 @@ func (vm *Machine) fetch() (uint16, error) {
 	ip := vm.cpu.GetRegister(register.Ip)
 
 	ipAddr := memory.Address(ip)
-	instr, err := vm.rom.GetUint16(ipAddr)
+	rom, err := vm.getMemory(memory.ROM)
+	if err != nil {
+		return 0, internal.Error("unable to access ROM", nil, internal.ErrorRuntime)
+	}
+	instr, err := rom.GetUint16(ipAddr)
 	if err != nil {
 		vm.status = Error
 		return instr, internal.Error("unable to get next instruction", err, internal.ErrorRuntime)
@@ -112,7 +124,11 @@ func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 
 func (vm *Machine) execute(instr instruction.Instruction) error {
 	vm.cycle = Execute
-	if err := instr.Execute(vm.cpu, vm.ram); err != nil {
+	ram, ok := vm.memory[memory.RAM]
+	if !ok {
+		return internal.Error("unable to access RAM", nil, internal.ErrorRuntime)
+	}
+	if err := instr.Execute(vm.cpu, ram); err != nil {
 		vm.status = Error
 		return internal.Error(fmt.Sprintf("error executing %#02x", instr), err, internal.ErrorRuntime)
 	}

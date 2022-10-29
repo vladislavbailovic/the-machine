@@ -69,7 +69,6 @@ func (x Formatter) Stitch(first []string, rest ...[]string) string {
 	default:
 		return fmt.Sprintf("ERROR: unknown rendering direction: %d", x.Rendering)
 	}
-	return ""
 }
 
 func (x Formatter) stitchRows(first []string, rest ...[]string) string {

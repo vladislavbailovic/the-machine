@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"the-machine/machine/internal"
 	"the-machine/machine/memory"
 )
 
@@ -18,7 +19,7 @@ func NewDumper() Dumper {
 func (x Dumper) Dump(mem memory.MemoryAccess) error {
 	f, err := os.Create(x.fname)
 	if err != nil {
-		return err
+		return internal.Error(fmt.Sprintf("error creating dump file %s", x.fname), err, internal.ErrorSaving)
 	}
 	defer f.Close()
 
@@ -29,12 +30,11 @@ func (x Dumper) Dump(mem memory.MemoryAccess) error {
 			break
 		} else {
 			if _, err := buffer.Write([]byte{b}); err != nil {
-				return err
+				return internal.Error(fmt.Sprintf("error dumping raw memory to %s", x.fname), err, internal.ErrorSaving)
 			}
 		}
 		idx++
 	}
 
-	fmt.Printf("\t- Dump memory content to %s\n", x.fname)
 	return buffer.Flush()
 }

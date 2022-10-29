@@ -26,6 +26,7 @@ const (
 
 	ErrorRuntime MachineErrorSource = "Runtime"
 	ErrorLoading MachineErrorSource = "Loading"
+	ErrorSaving  MachineErrorSource = "Saving"
 )
 
 type MachineError struct {

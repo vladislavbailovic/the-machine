@@ -145,7 +145,11 @@ func (x Debugger) Run() {
 			doTick = false
 			continue
 		case debug.Dump:
-			x.Dump()
+			if err := x.Dump(); err != nil {
+				x.renderer.OutError("debugger error", err)
+			} else {
+				x.renderer.Out("Successfully dumped memory to file")
+			}
 			doTick = false
 			continue
 		case debug.Reset:

@@ -1,7 +1,5 @@
 package main
 
-// https://github.dev/lowbyteproductions/16-Bit-Virtual-Machine/tree/master/episode-1
-
 import (
 	"fmt"
 	"os"
@@ -47,7 +45,7 @@ func run(vm machine.Machine) (int, error) {
 }
 
 func main() {
-	main_IoStdout_Machine()
+	main_InteractiveDebugger()
 }
 
 func main_IoStdout_Machine() {

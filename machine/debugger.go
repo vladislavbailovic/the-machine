@@ -8,13 +8,6 @@ import (
 	"the-machine/machine/register"
 )
 
-type MemoryType uint8
-
-const (
-	RAM MemoryType = 0
-	ROM MemoryType = iota
-)
-
 type Debugger struct {
 	vm       *Machine
 	renderer *debug.Renderer
@@ -39,7 +32,7 @@ func (x Debugger) currentRam() {
 
 func (x Debugger) ramAt(memPos memory.Address, length int) {
 	x.renderer.Out("[ Memory ]")
-	x.renderer.Out(x.Peek(memPos, length, RAM))
+	x.renderer.Out(x.Peek(memPos, length, memory.RAM))
 }
 
 func (x Debugger) currentRom() {
@@ -48,7 +41,7 @@ func (x Debugger) currentRom() {
 }
 func (x Debugger) romAt(memPos memory.Address, length int) {
 	x.renderer.Out("[ Program ]")
-	x.renderer.Out(x.Peek(memPos, length, ROM))
+	x.renderer.Out(x.Peek(memPos, length, memory.ROM))
 }
 
 func (x Debugger) currentStack() {

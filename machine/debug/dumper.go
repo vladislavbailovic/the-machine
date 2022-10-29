@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"the-machine/machine/internal"
 	"the-machine/machine/memory"
 )
@@ -11,6 +13,7 @@ import (
 type Dumpable interface {
 	Out(byte, *bufio.Writer) (int, error)
 	Dump(memory.MemoryAccess) error
+	Load() ([]byte, error)
 }
 
 type Dumper struct {
@@ -23,6 +26,14 @@ func NewDumper() Dumpable {
 
 func (x Dumper) Dump(mem memory.MemoryAccess) error {
 	return dumpRawMemory(x, mem, x.fname)
+}
+
+func (x Dumper) Load() ([]byte, error) {
+	buffer, err := os.ReadFile(x.fname)
+	if err != nil {
+		return buffer, internal.Error(fmt.Sprintf("error loading dump file %s", x.fname), err, internal.ErrorLoading)
+	}
+	return buffer, nil
 }
 
 func (x Dumper) Out(b byte, w *bufio.Writer) (int, error) {
@@ -46,11 +57,33 @@ func NewAsciiDumper(numbers Representation) Dumpable {
 }
 
 func (x AsciiDumper) Out(b byte, w *bufio.Writer) (int, error) {
-	return w.WriteString(fmt.Sprintf(x.byteFormat, b))
+	out := " " + fmt.Sprintf(x.byteFormat, b) + " "
+	return w.WriteString(out)
 }
 
 func (x AsciiDumper) Dump(mem memory.MemoryAccess) error {
 	return dumpRawMemory(x, mem, x.fname)
+}
+
+func (x AsciiDumper) Load() ([]byte, error) {
+	buffer, err := os.ReadFile(x.fname)
+	if err != nil {
+		return buffer, internal.Error(fmt.Sprintf("error loading dump file %s", x.fname), err, internal.ErrorLoading)
+	}
+
+	ascii := strings.Split(strings.TrimSpace(string(buffer)), " ")
+	out := []byte{}
+	for idx, raw := range ascii {
+		if "" == raw {
+			continue
+		}
+		if b, err := strconv.Atoi(raw); err != nil {
+			return out, internal.Error(fmt.Sprintf("error loading %s at position %d: %v", x.fname, idx, raw), err, internal.ErrorLoading)
+		} else {
+			out = append(out, byte(b))
+		}
+	}
+	return out, nil
 }
 
 func dumpRawMemory(x Dumpable, mem memory.MemoryAccess, toFname string) error {

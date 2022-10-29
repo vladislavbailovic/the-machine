@@ -152,6 +152,14 @@ func (x Debugger) Run() {
 			}
 			doTick = false
 			continue
+		case debug.Load:
+			if err := x.Load(); err != nil {
+				x.renderer.OutError("debugger error", err)
+			} else {
+				x.renderer.Out("Successfully loaded buffer")
+			}
+			doTick = false
+			continue
 		case debug.Reset:
 			x.vm.Reset()
 			doTick = false
@@ -230,6 +238,17 @@ func (x Debugger) Disassemble(startAt memory.Address, outputLen int) string {
 func (x Debugger) Dump() error {
 	dumper := debug.NewAsciiDumper(debug.Decimal)
 	return dumper.Dump(x.vm.rom)
+}
+
+func (x Debugger) Load() error {
+	dumper := debug.NewAsciiDumper(debug.Decimal)
+	if rom, err := dumper.Load(); err != nil {
+		return internal.Error("loading error", err, internal.ErrorLoading)
+	} else {
+		x.vm.LoadProgram(0, rom)
+		x.vm.Reset()
+	}
+	return nil
 }
 
 func (x Debugger) OutError(err error) {

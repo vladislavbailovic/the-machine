@@ -19,6 +19,7 @@ const (
 	Disassemble Action = iota
 	Stack       Action = iota
 	Dump        Action = iota
+	Load        Action = iota
 	Reset       Action = iota
 	Quit        Action = iota
 )
@@ -108,6 +109,8 @@ func (x Interface) parseCommand(input string) (Actionable, error) {
 		}
 	case "i":
 		return Command{Action: Inspect}, nil
+	case "l":
+		return Command{Action: Load}, nil
 	}
 	fmt.Printf("Got input: [%s]", input)
 	return Command{}, internal.Error(fmt.Sprintf("ERROR: unable to parse command"), nil, internal.ErrorInterface)

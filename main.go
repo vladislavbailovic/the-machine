@@ -46,6 +46,15 @@ func run(vm machine.Machine) (int, error) {
 }
 
 func main() {
+	main_InteractiveDebugger()
+}
+
+func main_InteractiveDebugger() {
+	vm := machine.NewMachine(0xffff)
+	vm.Debug()
+}
+
+func main_InteractiveDebugger_WithProgram() {
 	vm := machine.NewMachine(0xffff)
 	setLimit := packSubroutine(
 		instruction.PUSH_LIT.Pack(1023),

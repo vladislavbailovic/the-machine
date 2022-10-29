@@ -47,7 +47,51 @@ func run(vm machine.Machine) (int, error) {
 }
 
 func main() {
-	main_IoStdin()
+	main_IoStdout_Machine()
+}
+
+func main_IoStdout_Machine() {
+	mem := device.NewIoMap()
+	vm := machine.NewWithMemory(mem, 1024)
+
+	buffer := packProgram(
+		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), uint16(device.Stdout)),
+
+		instruction.MOV_LIT_R1.Pack(uint16('o')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_R1.Pack(uint16('h')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_R1.Pack(uint16('a')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_R1.Pack(uint16('i')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_R1.Pack(uint16(' ')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_R1.Pack(uint16('t')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_R1.Pack(uint16('h')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_R1.Pack(uint16('a')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_R1.Pack(uint16('r')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_R1.Pack(uint16('\n')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+	)
+
+	vm.LoadProgram(0, buffer)
+	if _, err := run(vm); err != nil {
+		vm.DebugError(err)
+	}
 }
 
 func main_IoStdin() {

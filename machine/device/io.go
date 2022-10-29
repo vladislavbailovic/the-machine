@@ -164,4 +164,6 @@ func (x iomap) SetByte(at memory.Address, b byte) error {
 }
 
 func (x iomap) GetUint16(memory.Address) (uint16, error) { return 0, nil }
-func (x iomap) SetUint16(memory.Address, uint16) error   { return nil }
+func (x iomap) SetUint16(at memory.Address, what uint16) error {
+	return x.SetByte(at, byte(what))
+}

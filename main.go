@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"the-machine/cmd"
 	"the-machine/machine"
 	"the-machine/machine/debug"
 	"the-machine/machine/device"
@@ -28,24 +29,14 @@ func packSubroutine(instr ...[]byte) []byte {
 	return packStatements(instruction.RET, instr...)
 }
 
-func run(vm machine.Machine) (int, error) {
-	step := 0
-	for step < 0xffff {
-		if err := vm.Tick(); err != nil {
-			terr := fmt.Errorf("error at tick %d: %w", step, err)
-			vm.DebugError(terr)
-			return step, terr
-		}
-		step++
-		if vm.IsDone() {
-			break
-		}
-	}
-	return step, nil
-}
-
 func main() {
-	main_IoStdout_Machine()
+	if len(os.Args) > 1 {
+		fname := os.Args[1]
+		// TODO: validate fname
+		cmd.RunFile(fname)
+	} else {
+		main_InteractiveDebugger()
+	}
 }
 
 func main_IoStdout_Machine() {
@@ -87,7 +78,7 @@ func main_IoStdout_Machine() {
 	)
 
 	vm.LoadProgram(0, buffer)
-	if _, err := run(vm); err != nil {
+	if _, err := cmd.Run(vm); err != nil {
 		vm.DebugError(err)
 	}
 	// vm.Debug()
@@ -142,7 +133,7 @@ func main_InteractiveDebugger_WithProgram() {
 		instruction.JLT.Pack(register.R2.AsUint16(), register.R3.AsUint16()),         // If Ac < R2, jump to R3
 	))
 
-	// run(vm)
+	// cmd.Run(vm)
 	vm.Debug()
 }
 
@@ -196,7 +187,7 @@ func outAll() {
 		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), 1),                      // 16: Ac++
 		instruction.JLT.Pack(register.R2.AsUint16(), register.R3.AsUint16()),         // 17: If Ac < R2, jump to R3
 	))
-	run(vm)
+	cmd.Run(vm)
 	vm.Debug()
 }
 

@@ -56,6 +56,16 @@ func NewAsciiDumper(numbers Representation) Dumpable {
 	return AsciiDumper{Dumper: dump, formatter: format, byteFormat: valueFmt}
 }
 
+func NewAsciiLoader(fname string, numbers Representation) Dumpable {
+	var dump Dumper = Dumper{fname: fname}
+	format := Formatter{
+		Numbers:  numbers,
+		OutputAs: Byte,
+	}
+	_, valueFmt := format.GetFormat()
+	return AsciiDumper{Dumper: dump, formatter: format, byteFormat: valueFmt}
+}
+
 func (x AsciiDumper) Out(b byte, w *bufio.Writer) (int, error) {
 	out := " " + fmt.Sprintf(x.byteFormat, b) + " "
 	return w.WriteString(out)

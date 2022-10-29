@@ -51,6 +51,12 @@ var Fp = Register{
 	pos:         12,
 }
 
+var Bnk = Register{
+	description: "Memory Bank",
+	name:        "Bnk",
+	pos:         11,
+}
+
 var R1 = Register{
 	description: "Register #1",
 	name:        "R1",
@@ -109,6 +115,8 @@ func FromByte(b byte) (Register, error) {
 		return Fp, nil
 	case Ac.pos:
 		return Ac, nil
+	case Bnk.pos:
+		return Bnk, nil
 	case R1.pos:
 		return R1, nil
 	case R2.pos:

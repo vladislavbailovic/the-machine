@@ -14,6 +14,7 @@ type Cpu struct {
 	sp        uint16
 	fp        uint16
 	ac        uint16
+	bnk       uint16
 	registers map[register.Register]uint16
 	stack     *memory.Memory
 	stackSize int
@@ -58,6 +59,8 @@ func (cpu Cpu) GetRegister(r register.Register) uint16 {
 		return cpu.fp
 	case register.Ac:
 		return cpu.ac
+	case register.Bnk:
+		return cpu.bnk
 	default:
 		if reg, ok := cpu.registers[r]; ok {
 			return reg
@@ -76,6 +79,8 @@ func (cpu *Cpu) SetRegister(r register.Register, v uint16) {
 		cpu.fp = v
 	case register.Ac:
 		cpu.ac = v
+	case register.Bnk:
+		cpu.bnk = v
 	default:
 		cpu.registers[r] = v
 	}

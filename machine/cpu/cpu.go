@@ -39,6 +39,7 @@ func (cpu *Cpu) Reset() {
 	cpu.sp = 0
 	cpu.fp = 0
 	cpu.ac = 0
+	cpu.bnk = 0
 	cpu.registers[register.R1] = 0
 	cpu.registers[register.R2] = 0
 	cpu.registers[register.R3] = 0

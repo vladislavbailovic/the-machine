@@ -58,6 +58,11 @@ func (vm *Machine) getMemory(kind memory.MemoryType) (memory.MemoryAccess, error
 	return nil, internal.Error(fmt.Sprintf("unable to access memory %s", kind), nil, internal.ErrorRuntime)
 }
 
+func (vm *Machine) GetMemory() (memory.MemoryAccess, error) {
+	bank := vm.cpu.GetRegister(register.Bnk)
+	return vm.getMemory(memory.MemoryType(bank))
+}
+
 func NewWithMemory(mem memory.MemoryAccess, ramSize int) Machine {
 	return Machine{
 		cpu:    cpu.NewCpu(),
@@ -124,11 +129,11 @@ func (vm *Machine) decode(instr uint16) (instruction.Instruction, error) {
 
 func (vm *Machine) execute(instr instruction.Instruction) error {
 	vm.cycle = Execute
-	ram, ok := vm.memory[memory.RAM]
-	if !ok {
-		return internal.Error("unable to access RAM", nil, internal.ErrorRuntime)
+	mem, err := vm.GetMemory()
+	if err != nil {
+		return internal.Error("unable to access memory", err, internal.ErrorRuntime)
 	}
-	if err := instr.Execute(vm.cpu, ram); err != nil {
+	if err := instr.Execute(vm.cpu, mem); err != nil {
 		vm.status = Error
 		return internal.Error(fmt.Sprintf("error executing %#02x", instr), err, internal.ErrorRuntime)
 	}

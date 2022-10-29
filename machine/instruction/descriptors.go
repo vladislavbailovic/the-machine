@@ -44,6 +44,14 @@ var Descriptors = map[Type]Instruction{
 		Description: "Move literal to register R8",
 		Executor:    Lit2Reg{Target: register.R8},
 	},
+	MOV_LIT_AC: {
+		Description: "Move literal to register Ac",
+		Executor:    Lit2Reg{Target: register.Ac},
+	},
+	MOV_LIT_BNK: {
+		Description: "Move literal to register Bnk",
+		Executor:    Lit2Reg{Target: register.Bnk},
+	},
 	MOV_REG_REG: {
 		Description: "Copy value from register to register",
 		Executor:    Reg2Reg{},

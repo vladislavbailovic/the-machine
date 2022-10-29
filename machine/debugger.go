@@ -174,6 +174,7 @@ func (x Debugger) CoreRegisters() string {
 		register.Ac,
 		register.Sp,
 		register.Fp,
+		register.Bnk,
 	})
 }
 
@@ -196,6 +197,7 @@ func (x Debugger) AllRegisters() string {
 		register.Ac,
 		register.Sp,
 		register.Fp,
+		register.Bnk,
 		register.R1,
 		register.R2,
 		register.R3,

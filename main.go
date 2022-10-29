@@ -45,15 +45,15 @@ func run(vm machine.Machine) (int, error) {
 }
 
 func main() {
-	main_InteractiveDebugger()
+	main_IoStdout_Machine()
 }
 
 func main_IoStdout_Machine() {
-	mem := device.NewIoMap()
-	vm := machine.NewWithMemory(mem, 1024)
+	vm := machine.NewMachine(1024)
 
 	buffer := packProgram(
-		instruction.ADD_REG_LIT.Pack(register.Ac.AsUint16(), uint16(device.Stdout)),
+		instruction.MOV_LIT_BNK.Pack(uint16(memory.DeviceIO)),
+		instruction.MOV_LIT_AC.Pack(uint16(device.Stdout)),
 
 		instruction.MOV_LIT_R1.Pack(uint16('o')),
 		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
@@ -90,6 +90,7 @@ func main_IoStdout_Machine() {
 	if _, err := run(vm); err != nil {
 		vm.DebugError(err)
 	}
+	// vm.Debug()
 }
 
 func main_IoStdin() {

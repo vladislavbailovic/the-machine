@@ -12,14 +12,16 @@ const (
 	PUSH_LIT Type = iota
 	POP_REG  Type = iota
 
-	MOV_LIT_R1 Type = iota
-	MOV_LIT_R2 Type = iota
-	MOV_LIT_R3 Type = iota
-	MOV_LIT_R4 Type = iota
-	MOV_LIT_R5 Type = iota
-	MOV_LIT_R6 Type = iota
-	MOV_LIT_R7 Type = iota
-	MOV_LIT_R8 Type = iota
+	MOV_LIT_R1  Type = iota
+	MOV_LIT_R2  Type = iota
+	MOV_LIT_R3  Type = iota
+	MOV_LIT_R4  Type = iota
+	MOV_LIT_R5  Type = iota
+	MOV_LIT_R6  Type = iota
+	MOV_LIT_R7  Type = iota
+	MOV_LIT_R8  Type = iota
+	MOV_LIT_AC  Type = iota
+	MOV_LIT_BNK Type = iota
 
 	MOV_REG_REG Type = iota
 	MOV_REG_MEM Type = iota

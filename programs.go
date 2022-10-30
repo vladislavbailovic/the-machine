@@ -15,6 +15,23 @@ import (
 	"the-machine/machine/register"
 )
 
+func packStatements(last instruction.Type, instr ...[]byte) []byte {
+	res := make([]byte, 0, len(instr)+2)
+	for _, b := range instr {
+		res = append(res, b...)
+	}
+	res = append(res, last.Pack(0)...)
+	return res
+}
+
+func packProgram(instr ...[]byte) []byte {
+	return packStatements(instruction.HALT, instr...)
+}
+
+func packSubroutine(instr ...[]byte) []byte {
+	return packStatements(instruction.RET, instr...)
+}
+
 type responseStatusWriter struct {
 	resp http.ResponseWriter
 }

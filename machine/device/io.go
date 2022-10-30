@@ -16,7 +16,7 @@ const (
 	Stdout FileDescriptor = iota
 	Stderr FileDescriptor = iota
 
-	_fileDescriptorsLimt FileDescriptor = iota
+	_fileDescriptorsLimt FileDescriptor = 255
 )
 
 func (x FileDescriptor) String() string {
@@ -50,13 +50,21 @@ func (x AccessType) String() string {
 	}
 }
 
-type filelike struct {
+type Filelike struct {
 	descriptor FileDescriptor
 	access     AccessType
 	stream     interface{}
 }
 
-func (x filelike) String() string {
+func NewFilelike(fd FileDescriptor, access AccessType, stream interface{}) Filelike {
+	return Filelike{
+		descriptor: fd,
+		access:     access,
+		stream:     stream,
+	}
+}
+
+func (x Filelike) String() string {
 	stream := "<stream>"
 	if x.stream == nil {
 		stream = "<NO STREAM>"
@@ -64,13 +72,16 @@ func (x filelike) String() string {
 	return fmt.Sprintf("%s <%s>: %s", x.descriptor, x.access, stream)
 }
 
-func (x filelike) Read() (byte, error) {
+func (x Filelike) Read() (byte, error) {
 	if x.access != Read {
 		return 0, internal.Error(fmt.Sprintf("unable to read file descriptor in %v", x), nil, internal.ErrorLoading)
 	}
 	if reader, ok := x.stream.(io.Reader); ok {
 		buf := make([]byte, 1, 1)
 		if n, err := reader.Read(buf); err != nil {
+			if io.EOF == err {
+				return 0, nil
+			}
 			return 0, internal.Error(fmt.Sprintf("read error: %v", x), err, internal.ErrorLoading)
 		} else if n > 0 {
 			return buf[0], nil
@@ -80,7 +91,7 @@ func (x filelike) Read() (byte, error) {
 	return 0, internal.Error(fmt.Sprintf("not a reader: %v", x), nil, internal.ErrorLoading)
 }
 
-func (x filelike) Write(b byte) error {
+func (x Filelike) Write(b byte) error {
 	if x.access != Write {
 		return internal.Error(fmt.Sprintf("unable to write to file descriptor in %v", x), nil, internal.ErrorLoading)
 	}
@@ -93,29 +104,29 @@ func (x filelike) Write(b byte) error {
 	return internal.Error(fmt.Sprintf("not a writer: %v", x), nil, internal.ErrorLoading)
 }
 
-type iomap struct {
-	fds map[FileDescriptor]filelike
+type IOMap struct {
+	fds map[FileDescriptor]Filelike
 }
 
 func NewIoMap() memory.MemoryAccess {
-	fds := map[FileDescriptor]filelike{
-		Stdin: filelike{
+	fds := map[FileDescriptor]Filelike{
+		Stdin: Filelike{
 			descriptor: Stdin,
 			access:     Read,
 			stream:     os.Stdin,
 		},
-		Stdout: filelike{
+		Stdout: Filelike{
 			descriptor: Stdout,
 			access:     Write,
 			stream:     os.Stdout,
 		},
-		Stderr: filelike{
+		Stderr: Filelike{
 			descriptor: Stderr,
 			access:     Write,
 			stream:     os.Stderr,
 		},
 	}
-	return iomap{fds: fds}
+	return &IOMap{fds: fds}
 }
 
 func memoryAddressToFileDescriptor(at memory.Address) (FileDescriptor, error) {
@@ -128,7 +139,7 @@ func memoryAddressToFileDescriptor(at memory.Address) (FileDescriptor, error) {
 	return FileDescriptor(byte(at)), nil
 }
 
-func (x iomap) GetByte(at memory.Address) (byte, error) {
+func (x IOMap) GetByte(at memory.Address) (byte, error) {
 	key, err := memoryAddressToFileDescriptor(at)
 	if err != nil {
 		return 0, internal.Error(
@@ -145,7 +156,7 @@ func (x iomap) GetByte(at memory.Address) (byte, error) {
 		internal.ErrorLoading)
 
 }
-func (x iomap) SetByte(at memory.Address, b byte) error {
+func (x IOMap) SetByte(at memory.Address, b byte) error {
 	key, err := memoryAddressToFileDescriptor(at)
 	if err != nil {
 		return internal.Error(
@@ -163,7 +174,17 @@ func (x iomap) SetByte(at memory.Address, b byte) error {
 
 }
 
-func (x iomap) GetUint16(memory.Address) (uint16, error) { return 0, nil }
-func (x iomap) SetUint16(at memory.Address, what uint16) error {
+func (x IOMap) GetUint16(at memory.Address) (uint16, error) {
+	val, err := x.GetByte(at)
+	if err != nil {
+		return uint16(val), err
+	}
+	return uint16(val), nil
+}
+func (x IOMap) SetUint16(at memory.Address, what uint16) error {
 	return x.SetByte(at, byte(what))
+}
+
+func (x *IOMap) SetDescriptor(fd FileDescriptor, what Filelike) {
+	x.fds[fd] = what
 }

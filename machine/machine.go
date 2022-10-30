@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"the-machine/machine/cpu"
 	"the-machine/machine/debug"
+	"the-machine/machine/device"
 	"the-machine/machine/instruction"
 	"the-machine/machine/internal"
 	"the-machine/machine/memory"
@@ -61,6 +62,19 @@ func (vm *Machine) getMemory(kind memory.MemoryType) (memory.MemoryAccess, error
 func (vm *Machine) GetMemory() (memory.MemoryAccess, error) {
 	bank := vm.cpu.GetRegister(register.Bnk)
 	return vm.getMemory(memory.MemoryType(bank))
+}
+
+func (vm *Machine) GetIO() (*device.IOMap, error) {
+	var io *device.IOMap
+	raw, err := vm.getMemory(memory.DeviceIO)
+	if err != nil {
+		return io, internal.Error("unable to access IO", err, internal.ErrorRuntime)
+	}
+	io, ok := raw.(*device.IOMap)
+	if !ok {
+		return io, internal.Error("unable to access IO", nil, internal.ErrorRuntime)
+	}
+	return io, nil
 }
 
 func NewWithMemory(mem memory.MemoryAccess, ramSize int) Machine {

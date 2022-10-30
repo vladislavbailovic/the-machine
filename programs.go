@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
+	"net/http"
 	"os"
+	"strings"
 	"the-machine/cmd"
 	"the-machine/machine"
 	"the-machine/machine/debug"
@@ -11,6 +14,148 @@ import (
 	"the-machine/machine/memory"
 	"the-machine/machine/register"
 )
+
+type responseStatusWriter struct {
+	resp http.ResponseWriter
+}
+
+func (x responseStatusWriter) Write(b []byte) (int, error) {
+	status := int(binary.LittleEndian.Uint16(b))
+	x.resp.WriteHeader(status)
+	return 0, nil
+}
+
+type responseBodyWriter struct {
+	resp http.ResponseWriter
+}
+
+func (x responseBodyWriter) Write(b []byte) (int, error) {
+	c := byte(binary.LittleEndian.Uint16(b))
+	x.resp.Write([]byte{c})
+	return 0, nil
+}
+
+func main_Microservice() {
+	vm := machine.NewMachine(2048)
+
+	method := device.FileDescriptor(12)
+	path := device.FileDescriptor(13)
+
+	responseStatus := device.FileDescriptor(16)
+	responseBody := device.FileDescriptor(61)
+
+	interceptor := func(w http.ResponseWriter, r *http.Request) {
+		io, err := vm.GetIO()
+		if err != nil {
+			panic(err)
+		}
+
+		mlike := device.NewFilelike(method, device.Read, strings.NewReader(r.Method))
+		io.SetDescriptor(method, mlike)
+
+		plike := device.NewFilelike(path, device.Read, strings.NewReader(r.URL.String()))
+		io.SetDescriptor(path, plike)
+
+		slike := device.NewFilelike(responseStatus, device.Write, responseStatusWriter{resp: w})
+		io.SetDescriptor(responseStatus, slike)
+
+		rlike := device.NewFilelike(responseBody, device.Write, responseBodyWriter{resp: w})
+		io.SetDescriptor(responseBody, rlike)
+
+		cmd.Run(vm)
+		vm.Reset()
+	}
+
+	program := packProgram(
+		instruction.MOV_LIT_R1.Pack(150),
+		instruction.CALL.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_BNK.Pack(uint16(memory.DeviceIO)),
+
+		instruction.MOV_LIT_AC.Pack(uint16(responseStatus)),
+		instruction.MOV_LIT_R1.Pack(201),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_LIT_AC.Pack(uint16(responseBody)),
+		instruction.MOV_LIT_R1.Pack(uint16('O')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+		instruction.MOV_LIT_R1.Pack(uint16('K')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+	)
+	verifyMethod := packProgram(
+		instruction.PUSH_LIT.Pack(uint16('T')),
+		instruction.PUSH_LIT.Pack(uint16('E')),
+		instruction.PUSH_LIT.Pack(uint16('G')),
+
+		instruction.MOV_LIT_R3.Pack(158),
+		instruction.MOV_LIT_R5.Pack(210),
+		instruction.MOV_LIT_BNK.Pack(uint16(memory.DeviceIO)),
+
+		instruction.MOV_LIT_AC.Pack(uint16(method)),
+		instruction.MOV_MEM_REG.Pack(register.Ac.AsUint16(), register.R1.AsUint16()),
+
+		instruction.POP_REG.Pack(register.R2.AsUint16()),
+
+		instruction.MOV_REG_REG.Pack(register.R2.AsUint16(), register.Ac.AsUint16()),
+		instruction.JEQ.Pack(register.R4.AsUint16(), register.R5.AsUint16()),
+
+		instruction.MOV_REG_REG.Pack(register.R1.AsUint16(), register.Ac.AsUint16()),
+		instruction.JEQ.Pack(register.R2.AsUint16(), register.R3.AsUint16()),
+
+		instruction.MOV_LIT_AC.Pack(uint16(responseStatus)),
+		instruction.MOV_LIT_R1.Pack(503),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+		instruction.MOV_LIT_AC.Pack(uint16(responseBody)),
+		instruction.MOV_LIT_R1.Pack(uint16('n')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+		instruction.MOV_LIT_R1.Pack(uint16('o')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+		instruction.MOV_LIT_R1.Pack(uint16('t')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+		instruction.MOV_LIT_R1.Pack(uint16(' ')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+		instruction.MOV_LIT_R1.Pack(uint16('o')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+		instruction.MOV_LIT_R1.Pack(uint16('k')),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+		instruction.HALT.Pack(0),
+
+		instruction.RET.Pack(0),
+	)
+	vm.LoadProgram(0, program)
+	vm.LoadProgram(150, verifyMethod)
+
+	http.HandleFunc("/", interceptor)
+	http.ListenAndServe(":6660", nil)
+}
+
+func main_RemapStdio_CopyToStdout() {
+	vm := machine.NewMachine(2048)
+	io, err := vm.GetIO()
+	if err != nil {
+		panic(err)
+	}
+
+	fd := device.FileDescriptor(13)
+	filelike := device.NewFilelike(fd, device.Read, strings.NewReader("hai hello"))
+
+	io.SetDescriptor(fd, filelike)
+
+	program := packProgram(
+		instruction.MOV_LIT_BNK.Pack(uint16(memory.DeviceIO)),
+
+		instruction.MOV_LIT_AC.Pack(uint16(fd)),
+		instruction.MOV_MEM_REG.Pack(register.Ac.AsUint16(), register.R1.AsUint16()),
+
+		instruction.MOV_LIT_AC.Pack(uint16(device.Stdout)),
+		instruction.MOV_REG_MEM.Pack(register.R1.AsUint16()),
+
+		instruction.MOV_REG_REG.Pack(register.R1.AsUint16(), register.Ac.AsUint16()),
+		instruction.JNE.Pack(register.R2.AsUint16(), register.R3.AsUint16()),
+	)
+	vm.LoadProgram(0, program)
+	cmd.Run(vm)
+}
 
 func main_IoStdout_Machine() {
 	vm := machine.NewMachine(1024)

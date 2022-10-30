@@ -1,6 +1,7 @@
 package device
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
@@ -104,6 +105,19 @@ func (x Filelike) Write(b byte) error {
 	return internal.Error(fmt.Sprintf("not a writer: %v", x), nil, internal.ErrorLoading)
 }
 
+func (x Filelike) WriteUint16(b []byte) error {
+	if x.access != Write {
+		return internal.Error(fmt.Sprintf("unable to write to file descriptor in %v", x), nil, internal.ErrorLoading)
+	}
+	if writer, ok := x.stream.(io.Writer); ok {
+		if _, err := writer.Write(b); err != nil {
+			return internal.Error(fmt.Sprintf("write error: %v", x), err, internal.ErrorLoading)
+		}
+		return nil
+	}
+	return internal.Error(fmt.Sprintf("not a writer: %v", x), nil, internal.ErrorLoading)
+}
+
 type IOMap struct {
 	fds map[FileDescriptor]Filelike
 }
@@ -182,7 +196,24 @@ func (x IOMap) GetUint16(at memory.Address) (uint16, error) {
 	return uint16(val), nil
 }
 func (x IOMap) SetUint16(at memory.Address, what uint16) error {
-	return x.SetByte(at, byte(what))
+	key, err := memoryAddressToFileDescriptor(at)
+	if err != nil {
+		return internal.Error(
+			fmt.Sprintf("not a descriptor: %v", x),
+			err,
+			internal.ErrorLoading)
+	}
+
+	b := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b, what)
+
+	if writer, ok := x.fds[key]; ok {
+		return writer.WriteUint16(b)
+	}
+	return internal.Error(
+		fmt.Sprintf("not a descriptor: %v", x),
+		err,
+		internal.ErrorLoading)
 }
 
 func (x *IOMap) SetDescriptor(fd FileDescriptor, what Filelike) {
